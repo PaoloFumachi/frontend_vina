@@ -4,11 +4,11 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { MovimientoStock, MovimientoStockCreate, MovimientoStockUpdate } from '../models/movimiento-stock.model';
-
+import { environment } from '../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class MovimientoStockService {
   // ✅ CORREGIDO: URL actualizada para coincidir con el backend
-  private apiUrl = 'http://localhost:4000/api/movimientos-stock';
+  private apiUrl = `${environment.apiUrl}/api/movimientos-stock`;
 
   constructor(private http: HttpClient) {}
 

@@ -3,14 +3,14 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Repartidor, RepartidorCreate, RepartidorUpdate } from '../models/repartidor.model';
-
+import { environment } from '../../../environments/environment';
 @Injectable({
   providedIn: 'root'
 })
 export class RepartidorService {
   private http = inject(HttpClient);
   // ✅ CORREGIDO: Cambiar la URL base
- private apiUrl = 'http://localhost:4000/api/repartidores';
+ private apiUrl = `${environment.apiUrl}/api/repartidores`;
   // Obtener todos los repartidores
   getRepartidores(): Observable<Repartidor[]> {
     return this.http.get<Repartidor[]>(this.apiUrl);

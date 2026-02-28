@@ -4,10 +4,10 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { PedidoProveedor, PedidoProveedorCreate, PedidoProveedorUpdate } from '../models/pedido-proveedor.model';
-
+import { environment } from '../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class PedidoProveedorService {
-  private apiUrl = 'http://localhost:4000/api/pedidos-proveedor';
+  private apiUrl = `${environment.apiUrl}/api/pedidos-proveedor`;
 
   constructor(private http: HttpClient) {}
 

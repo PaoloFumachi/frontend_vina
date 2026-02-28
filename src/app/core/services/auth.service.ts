@@ -5,6 +5,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
 import { Usuario, Rol } from '../models/usuario.model';
+import { environment } from '../../../environments/environment';
 
 export interface AuthResponse {
   token: string;
@@ -23,7 +24,7 @@ export interface AuthResponse {
 })
 export class AuthService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:4000/api/auth';
+    private apiUrl = `${environment.apiUrl}/auth`; // ✅ AHORA USA ENVIRONMENT
   
   private STORAGE_KEY = 'auth_token';
   private USER_KEY = 'auth_user';

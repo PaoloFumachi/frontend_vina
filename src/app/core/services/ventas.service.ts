@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-
+import { environment } from '../../../environments/environment';
 // ✅ Interfaces
 export interface Venta {
   id_venta?: number;
@@ -85,8 +85,8 @@ export interface EstadisticasVentas {
 })
 export class VentasService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:4000/api/ventas';
-  private sunatApiUrl = 'http://localhost:4000/api/sunat';
+  private apiUrl = `${environment.apiUrl}/ventas`;
+  private sunatApiUrl = `${environment.apiUrl}/sunat`;
 
   // ✅ MÉTODOS BÁSICOS
   getVentas(): Observable<Venta[]> {

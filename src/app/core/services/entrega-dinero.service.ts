@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, throwError, of } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
-
+import { environment } from '../../../environments/environment';
 // Interfaces actualizadas
 export interface HistorialEntregasResponse {
   success: boolean;
@@ -100,7 +100,7 @@ export interface RegistrarEntregaConVentasResponse {
 })
 export class EntregaDineroService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:4000/api/entregas-dinero';
+  private apiUrl = `${environment.apiUrl}/api/entregas-dinero`;
 
   constructor() {
     console.log('💰 EntregaDineroService inicializado');

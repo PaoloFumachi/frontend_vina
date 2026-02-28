@@ -2,8 +2,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, throwError, catchError, map } from 'rxjs';
-import { Cliente, Country, Department, Province, District } from '../models/cliente.model';
-
+import { Cliente } from '../models/cliente.model';
+import { environment } from '../../../environments/environment';
 // Interface para clientes en ventas
 // Interface para clientes en ventas - VERSIÓN CORREGIDA
 export interface ClienteVenta {
@@ -25,7 +25,7 @@ export interface ClienteVenta {
 
 @Injectable({ providedIn: 'root' })
 export class ClienteService {
-  private apiUrl = 'http://localhost:4000/api';
+  private apiUrl = `${environment.apiUrl}/api`;
 
   constructor(private http: HttpClient) { }
 

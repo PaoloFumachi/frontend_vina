@@ -2,10 +2,10 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, throwError, catchError } from 'rxjs';
 import { Country, Department, Province, District } from '../models/cliente.model';
-
+import { environment } from '../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class UbicacionService {
-  private apiUrl = 'http://localhost:4000/api/ubicacion';
+  private apiUrl = `${environment.apiUrl}/api/ubicacion`;
 
   constructor(private http: HttpClient) { }
 

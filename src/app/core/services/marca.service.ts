@@ -4,10 +4,10 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Marca, MarcaCreate, MarcaUpdate } from '../models/marca.model';
-
+import { environment } from '../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class MarcaService {
-  private apiUrl = 'http://localhost:4000/api/marcas';
+  private apiUrl = `${environment.apiUrl}/api/marcas`;
 
   constructor(private http: HttpClient) {}
 

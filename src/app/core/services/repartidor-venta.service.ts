@@ -3,13 +3,13 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, throwError } from 'rxjs';
 import { RepartidorVenta } from '../models/repartidor-venta.model';
-
+import { environment } from '../../../environments/environment';
 @Injectable({
   providedIn: 'root'
 })
 export class RepartidorVentaService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:4000/api/ventas';
+  private apiUrl = `${environment.apiUrl}/api/ventas`;
 
   // Obtener ventas asignadas al repartidor actual
   getVentasAsignadas(): Observable<RepartidorVenta[]> {

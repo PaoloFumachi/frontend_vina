@@ -4,10 +4,10 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Categoria, CategoriaCreate, CategoriaUpdate } from '../models/categoria.model';
-
+import { environment } from '../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class CategoriaService {
-  private apiUrl = 'http://localhost:4000/api/categorias';
+  private apiUrl = `${environment.apiUrl}/api/categorias`;
 
   constructor(private http: HttpClient) {}
 
