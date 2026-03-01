@@ -7,7 +7,7 @@ import { Insumo, InsumoCreate, InsumoUpdate } from '../models/insumo.model';
 import { environment } from '../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class InsumoService {
-  private apiUrl = `${environment.apiUrl}/insumos`;
+  private apiUrl = `${environment.apiUrl}/api/insumos`;
 
   constructor(private http: HttpClient) {}
 

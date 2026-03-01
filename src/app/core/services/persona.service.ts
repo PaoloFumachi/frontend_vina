@@ -6,7 +6,7 @@ import { Persona } from '../models/persona.model';
 import { environment } from '../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class PersonaService {
-  private apiUrl = `${environment.apiUrl}`;
+  private apiUrl = `${environment.apiUrl}/api`;
 
   constructor(private http: HttpClient) {}
 

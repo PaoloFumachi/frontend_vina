@@ -10,7 +10,7 @@ import { environment } from '../../../environments/environment';
 export class RepartidorService {
   private http = inject(HttpClient);
   // ✅ CORREGIDO: Cambiar la URL base
- private apiUrl = `${environment.apiUrl}/repartidores`;
+ private apiUrl = `${environment.apiUrl}/api/repartidores`;
   // Obtener todos los repartidores
   getRepartidores(): Observable<Repartidor[]> {
     return this.http.get<Repartidor[]>(this.apiUrl);

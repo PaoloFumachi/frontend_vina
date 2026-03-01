@@ -100,7 +100,7 @@ export interface RegistrarEntregaConVentasResponse {
 })
 export class EntregaDineroService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/entregas-dinero`;
+  private apiUrl = `${environment.apiUrl}/api/entregas-dinero`;
 
   constructor() {
     console.log('💰 EntregaDineroService inicializado');

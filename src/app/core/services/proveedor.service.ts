@@ -7,7 +7,7 @@ import { Proveedor, ProveedorCreate, ProveedorUpdate } from '../models/proveedor
 import { environment } from '../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class ProveedorService {
-  private apiUrl = `${environment.apiUrl}/proveedores`;
+  private apiUrl = `${environment.apiUrl}/api/proveedores`;
 
   constructor(private http: HttpClient) {}
 
