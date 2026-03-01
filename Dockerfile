@@ -14,8 +14,8 @@ COPY . .
 # Construir la aplicación
 RUN npm run build -- --configuration=production
 
-# Exponer puerto
-EXPOSE 4200
+# Exponer puerto (Railway asignará el suyo)
+EXPOSE $PORT
 
-# Servir la aplicación
-CMD ["npx", "http-server", "dist/my-app-dsi6/browser", "-p", "4200"]
+# Servir la aplicación usando el puerto de Railway
+CMD ["sh", "-c", "npx http-server dist/my-app-dsi6/browser -p $PORT"]
