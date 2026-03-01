@@ -5,7 +5,7 @@ import { Product, Country, Category, Brand, Supplier } from '../models/producto.
 import { environment } from '../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class ProductService {
-  private apiUrl = `${environment.apiUrl}/api`;
+  private apiUrl = `${environment.apiUrl}`;
 
   constructor(private http: HttpClient) {}
 

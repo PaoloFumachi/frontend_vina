@@ -7,7 +7,7 @@ import { PedidoProveedor, PedidoProveedorCreate, PedidoProveedorUpdate } from '.
 import { environment } from '../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class PedidoProveedorService {
-  private apiUrl = `${environment.apiUrl}/api/pedidos-proveedor`;
+  private apiUrl = `${environment.apiUrl}/pedidos-proveedor`;
 
   constructor(private http: HttpClient) {}
 

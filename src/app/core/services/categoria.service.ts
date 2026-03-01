@@ -7,7 +7,7 @@ import { Categoria, CategoriaCreate, CategoriaUpdate } from '../models/categoria
 import { environment } from '../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class CategoriaService {
-  private apiUrl = `${environment.apiUrl}/api/categorias`;
+  private apiUrl = `${environment.apiUrl}/categorias`;
 
   constructor(private http: HttpClient) {}
 

@@ -27,7 +27,7 @@ export interface EmpresaConfig {
 })
 export class EmpresaService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/api/empresa`;
+  private apiUrl = `${environment.apiUrl}/empresa`;
 
   getConfig(): Observable<EmpresaConfig> {
     return this.http.get<EmpresaConfig>(`${this.apiUrl}/config`);
