@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map, forkJoin, throwError, catchError,of  } from 'rxjs';
 import { Product, Country, Category, Brand, Supplier } from '../models/producto.model';
-import { environment } from '../../../environments/environment';
+import { environment } from '../../../environments/environment.prod';
 @Injectable({ providedIn: 'root' })
 export class ProductService {
   private apiUrl = `${environment.apiUrl}/api`;
