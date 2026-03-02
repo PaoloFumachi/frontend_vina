@@ -8,7 +8,7 @@ import { environment } from '../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class MovimientoStockService {
   // ✅ CORREGIDO: URL actualizada para coincidir con el backend
-  private apiUrl = `${environment.apiUrl}/api/movimientos-stock`;
+  private apiUrl = `${environment.apiUrl}/movimientos-stock`;
 
   constructor(private http: HttpClient) {}
 

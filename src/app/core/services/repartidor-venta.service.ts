@@ -9,7 +9,7 @@ import { environment } from '../../../environments/environment';
 })
 export class RepartidorVentaService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/api/ventas`;
+  private apiUrl = `${environment.apiUrl}/ventas`;
 
   // Obtener ventas asignadas al repartidor actual
   getVentasAsignadas(): Observable<RepartidorVenta[]> {

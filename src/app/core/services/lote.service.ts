@@ -7,7 +7,7 @@ import { Lote, LoteCreate, LoteUpdate } from '../models/lote.model';
 import { environment } from '../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class LoteService {
-  private apiUrl = `${environment.apiUrl}/api/lotes`;
+  private apiUrl = `${environment.apiUrl}/lotes`;
 
   constructor(private http: HttpClient) {}
 
