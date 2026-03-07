@@ -118,18 +118,26 @@ export class PersonalizacionService {
     );
   }
 
-  uploadLogo(file: File, tipo: 'login' | 'navbar'): Observable<any> {
-    const formData = new FormData();
-    formData.append('logo', file);
-    formData.append('tipo', tipo);
+// En personalizacion.service.ts - MODIFICAR uploadLogo
+uploadLogo(file: File, tipo: 'login' | 'navbar'): Observable<any> {
+  const formData = new FormData();
+  formData.append('logo', file);
+  formData.append('tipo', tipo);
 
-    return this.http.post(`${this.apiUrl}/upload-logo`, formData).pipe(
-      tap(() => {
-        this.cargarConfiguracion();
-        this.lastUpdate.set(Date.now());
-      })
-    );
-  }
+  return this.http.post(`${this.apiUrl}/upload-logo`, formData).pipe(
+    tap((response: any) => {
+      console.log('✅ Logo subido, respuesta:', response);
+      
+      // Forzar recarga de configuración
+      this.cargarConfiguracion();
+      
+      // Actualizar lastUpdate para forzar cambio en URLs
+      this.lastUpdate.set(Date.now());
+      
+      console.log('🔄 URL actualizada:', this.logoLoginUrl());
+    })
+  );
+}
 
   getLogoUrl(tipo: 'login' | 'navbar'): string {
     return tipo === 'login' ? this.logoLoginUrl() : this.logoNavbarUrl();

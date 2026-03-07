@@ -66,11 +66,12 @@ export class LogoComponent implements OnInit, OnDestroy {
     this.imageError = false;
   }
 
-  onImageError() {
-    this.imageError = true;
-    console.warn(`Error al cargar logo para ${this.tipo}`);
-  }
-
+onImageError() {
+  this.imageError = true;
+  console.error(`❌ Error al cargar logo para ${this.tipo}`);
+  console.error('   URL intentada:', this.logoUrl);
+  console.error('   Config:', this.personalizacionService.config());
+}
   onClick() {
     if (this.clickable && this.tipo === 'navbar') {
       this.router.navigate(['/inicio']);

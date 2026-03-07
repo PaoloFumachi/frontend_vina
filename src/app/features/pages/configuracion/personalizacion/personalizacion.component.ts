@@ -88,64 +88,65 @@ export class PersonalizacionComponent implements OnInit {
     });
   }
 
-  onFileSelected(event: any, tipo: 'login' | 'navbar') {
-    const file = event.target.files[0];
-    if (!file) return;
+ // En personalizacion.component.ts - MEJORAR onFileSelected
+onFileSelected(event: any, tipo: 'login' | 'navbar') {
+  const file = event.target.files[0];
+  if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      this.error = 'Solo se permiten imágenes';
-      return;
+  // Mostrar preview local inmediatamente
+  const reader = new FileReader();
+  reader.onload = (e: any) => {
+    if (tipo === 'login') {
+      this.previewLogin = e.target.result;
+    } else {
+      this.previewNavbar = e.target.result;
     }
+  };
+  reader.readAsDataURL(file);
 
-    if (file.size > 2 * 1024 * 1024) {
-      this.error = 'La imagen no debe superar los 2MB';
-      return;
-    }
+  this.uploading[tipo] = true;
+  this.error = '';
 
-    const reader = new FileReader();
-    reader.onload = (e: any) => {
+  this.personalizacionService.uploadLogo(file, tipo).subscribe({
+    next: (response) => {
+      this.uploading[tipo] = false;
+      this.success = `✅ Logo para ${tipo === 'login' ? 'login' : 'barra'} actualizado`;
+      
+      // Actualizar la configuración
       if (tipo === 'login') {
-        this.previewLogin = e.target.result;
-      } else {
-        this.previewNavbar = e.target.result;
-      }
-    };
-    reader.readAsDataURL(file);
-
-    this.uploading[tipo] = true;
-    this.error = '';
-
-    this.personalizacionService.uploadLogo(file, tipo).subscribe({
-      next: (response) => {
-        this.uploading[tipo] = false;
-        this.success = `✅ Logo para ${tipo === 'login' ? 'login' : 'barra'} actualizado`;
-        setTimeout(() => this.success = '', 3000);
-        
-        if (tipo === 'login') {
-          this.config.logo_login = response.ruta;
-        } else {
-          this.config.logo_navbar = response.ruta;
-        }
-        
-        if (tipo === 'login') {
-          this.fileInputLogin.nativeElement.value = '';
-        } else {
-          this.fileInputNavbar.nativeElement.value = '';
-        }
-      },
-      error: (err) => {
-        this.uploading[tipo] = false;
-        this.error = err.error?.error || 'Error al subir el logo';
-        console.error(err);
-        
-        if (tipo === 'login') {
+        this.config.logo_login = response.ruta;
+        // Limpiar preview local después de un tiempo
+        setTimeout(() => {
           this.previewLogin = null;
-        } else {
+        }, 2000);
+      } else {
+        this.config.logo_navbar = response.ruta;
+        setTimeout(() => {
           this.previewNavbar = null;
-        }
+        }, 2000);
       }
-    });
-  }
+      
+      setTimeout(() => this.success = '', 3000);
+      
+      if (tipo === 'login') {
+        this.fileInputLogin.nativeElement.value = '';
+      } else {
+        this.fileInputNavbar.nativeElement.value = '';
+      }
+    },
+    error: (err) => {
+      this.uploading[tipo] = false;
+      this.error = err.error?.error || 'Error al subir el logo';
+      console.error(err);
+      
+      if (tipo === 'login') {
+        this.previewLogin = null;
+      } else {
+        this.previewNavbar = null;
+      }
+    }
+  });
+}
 
   cancelarPreview(tipo: 'login' | 'navbar') {
     if (tipo === 'login') {
