@@ -1,5 +1,5 @@
 // ============================================
-// SERVICIO DE PERSONALIZACIÓN - VERSIÓN MEJORADA
+// SERVICIO DE PERSONALIZACIÓN - VERSIÓN CORREGIDA
 // ============================================
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -19,7 +19,6 @@ export class PersonalizacionService {
   private configSignal = signal<EmpresaConfig | null>(null);
   public config = this.configSignal.asReadonly();
   
-  private urlCache = new Map<string, string>();
   private lastUpdate = signal<number>(Date.now());
 
   // Helper para construir URLs de manera consistente
@@ -60,7 +59,7 @@ export class PersonalizacionService {
         this.configSignal.set(config);
         this.lastUpdate.set(Date.now());
         console.log('✅ Configuración cargada:', config);
-        console.log('🔍 Logo URL:', this.logoLoginUrl()); // Para depuración
+        console.log('🔍 Logo URL:', this.logoLoginUrl());
       },
       error: (error) => {
         if (error.status !== 401) {
