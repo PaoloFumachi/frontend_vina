@@ -100,15 +100,23 @@ irARutasAsignadas() {
   }
 
   
-// Modificar volverAtras para limpiar el localStorage si es necesario
+// AÑADE en el método volverAtras
 volverAtras() {
+  // Verificar si hay un estado guardado para restaurar en el componente de historial
+  const historialGuardado = sessionStorage.getItem('historial_entregas_estado');
+  
+  if (historialGuardado && this.previousRoute === '/repartidor/historial-entregas') {
+    // Si vamos a historial, el estado ya está guardado en sessionStorage
+    // El componente lo restaurará automáticamente en ngOnInit
+    console.log('📦 Estado de historial disponible para restaurar');
+  }
+  
   // Limpiar cualquier dato residual
   localStorage.removeItem('previous_repartidor_route');
   
   console.log('🔙 Volviendo a:', this.previousRoute);
   this.router.navigate([this.previousRoute]);
 }
-
   // Métodos auxiliares para la vista
   getEstadoBadgeClass(estado: string): string {
     const estadoClass: { [key: string]: string } = {

@@ -2,7 +2,7 @@
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 // Agrega esta importación
 import { AuthService } from '../../../../core/services/auth.service'; // Ajusta la ruta según tu estructura
@@ -30,7 +30,7 @@ export class HistorialEntregasComponent implements OnInit, OnDestroy {
   private subscription: Subscription = new Subscription();
   private dataSubscription: Subscription = new Subscription();
   private deteccionCambioDiaService = inject(DeteccionCambioDiaService);
-  
+  private route = inject(ActivatedRoute);
   // Datos principales
   historial: RepartidorVenta[] = [];
   historialFiltrado: RepartidorVenta[] = [];
@@ -64,7 +64,11 @@ export class HistorialEntregasComponent implements OnInit, OnDestroy {
   // Nueva propiedad para mostrar alerta
   mostrarAlertaPendiente = false;
 
-  ngOnInit() {
+ // MODIFICA ngOnInit
+ngOnInit() {
+  // Intentar restaurar estado guardado
+  this.restaurarEstadoGuardado();
+  
   this.cargarDatos();
   
   // Escuchar evento de cambio de día
@@ -87,11 +91,80 @@ export class HistorialEntregasComponent implements OnInit, OnDestroy {
       this.verificarConsistenciaDatos();
     }, 1000);
   }, 2000);
+  
   // ✅ NUEVO: Verificar configuración de empresa
   setTimeout(() => {
     this.verificarConfiguracionEmpresa();
   }, 5000);
 }
+
+// NUEVO: Restaurar estado guardado
+private restaurarEstadoGuardado() {
+  const estadoGuardado = sessionStorage.getItem('historial_entregas_estado');
+  
+  if (estadoGuardado) {
+    try {
+      const estado = JSON.parse(estadoGuardado);
+      
+      // Restaurar filtros
+      this.terminoBusqueda = estado.terminoBusqueda || '';
+      this.filtroFecha = estado.filtroFecha || '';
+      this.filtroMetodoPago = estado.filtroMetodoPago || 'todos';
+      this.filtroEstado = estado.filtroEstado || 'todos';
+      
+      // Restaurar paginación
+      this.paginaActual = estado.paginaActual || 1;
+      this.itemsPorPagina = estado.itemsPorPagina || 10;
+      
+      console.log('🔄 Estado restaurado:', estado);
+      
+      // Limpiar después de restaurar
+      sessionStorage.removeItem('historial_entregas_estado');
+    } catch (error) {
+      console.error('Error restaurando estado:', error);
+    }
+  }
+}
+
+// NUEVO: Guardar estado antes de navegar
+private guardarEstadoAntesDeNavegar() {
+  const estado = {
+    terminoBusqueda: this.terminoBusqueda,
+    filtroFecha: this.filtroFecha,
+    filtroMetodoPago: this.filtroMetodoPago,
+    filtroEstado: this.filtroEstado,
+    paginaActual: this.paginaActual,
+    itemsPorPagina: this.itemsPorPagina
+  };
+  
+  sessionStorage.setItem('historial_entregas_estado', JSON.stringify(estado));
+  console.log('💾 Estado de historial guardado:', estado);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // NUEVO: Método para verificar consistencia de datos
 private verificarConsistenciaDatos() {
@@ -1279,7 +1352,7 @@ mostrarModalDetallePendiente() {
   });
 }
   // ========== MÉTODOS DE FILTRADO ==========
-// Modifica el método aplicarFiltros para que reinicie la paginación
+// MODIFICA los métodos de filtrado para guardar estado cuando cambian
 aplicarFiltros() {
   let filtrado = [...this.historial];
 
@@ -1295,11 +1368,13 @@ aplicarFiltros() {
       );
     });
   }
+  
   if (this.filtroFecha) {
     filtrado = filtrado.filter(entrega =>
       entrega.fecha === this.filtroFecha
     );
   }
+  
   if (this.filtroMetodoPago !== 'todos') {
     filtrado = filtrado.filter(entrega =>
       entrega.id_metodo_pago?.toString() === this.filtroMetodoPago
@@ -1320,18 +1395,22 @@ aplicarFiltros() {
 
   this.historialFiltrado = filtrado;
   
-  // ✅ IMPORTANTE: Reiniciar a página 1 y actualizar paginación
+  // ✅ Reiniciar a página 1 y actualizar paginación
   this.paginaActual = 1;
   this.actualizarPaginacion();
+  
+  // Guardar estado después de filtrar
+  this.guardarEstadoAntesDeNavegar();
 }
 
-  limpiarFiltros() {
-    this.terminoBusqueda = '';
-    this.filtroFecha = '';
-    this.filtroMetodoPago = 'todos';
-    this.filtroEstado = 'todos';
-    this.aplicarFiltros();
-  }
+ // MODIFICA limpiarFiltros
+limpiarFiltros() {
+  this.terminoBusqueda = '';
+  this.filtroFecha = '';
+  this.filtroMetodoPago = 'todos';
+  this.filtroEstado = 'todos';
+  this.aplicarFiltros();
+}
 
   removerFiltro(tipo: string) {
     switch (tipo) {
@@ -2186,17 +2265,19 @@ actualizarPaginacion() {
   }
 
   // ========== MÉTODOS EXISTENTES ==========
-  cargarHistorial() {
-    this.cargarDatos();
-  }
 
+// MODIFICA verDetalleVenta
 verDetalleVenta(idVenta: number) {
-  // Guardar la ruta actual antes de navegar
+  // Guardar estado antes de navegar
+  this.guardarEstadoAntesDeNavegar();
+  
+  // Guardar la ruta actual
   const currentRoute = this.router.url;
   localStorage.setItem('previous_repartidor_route', currentRoute);
   
   this.router.navigate(['/repartidor/venta', idVenta]);
 }
+
 
   getEstadoBadgeClass(estado: string): string {
     const estadoClass: { [key: string]: string } = {
@@ -3419,16 +3500,23 @@ getFinPagina(): number {
   return Math.min(fin, this.historialFiltrado.length);
 }
 
-// Método para cambiar página cuando se selecciona del dropdown
+// MODIFICA cambiarPagina
 cambiarPagina() {
   this.actualizarPaginacion();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  this.guardarEstadoAntesDeNavegar();
 }
 
-// Método para cambiar items por página
+// MODIFICA cambiarItemsPorPagina
 cambiarItemsPorPagina() {
   this.paginaActual = 1;
   this.actualizarPaginacion();
+  this.guardarEstadoAntesDeNavegar();
+}
+// AÑADE este método para restaurar después de volver
+cargarHistorial() {
+  this.restaurarEstadoGuardado();
+  this.cargarDatos();
 }
 
 // Método para obtener array de páginas para el dropdown

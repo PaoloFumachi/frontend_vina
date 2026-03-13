@@ -158,7 +158,20 @@ onFileSelected(event: any, tipo: 'login' | 'navbar') {
     }
   }
 
-  volver() {
+volver() {
+  // Si el usuario vino desde configuración, volver allí
+  const fromConfig = localStorage.getItem('from_configuracion');
+  
+  if (fromConfig) {
+    localStorage.removeItem('from_configuracion');
+    this.router.navigate(['/configuracion']);
+  } else {
     this.router.navigate(['/inicio']);
   }
+}
+
+// AÑADE un método para establecer origen
+setOrigenConfiguracion() {
+  localStorage.setItem('from_configuracion', 'true');
+}
 }

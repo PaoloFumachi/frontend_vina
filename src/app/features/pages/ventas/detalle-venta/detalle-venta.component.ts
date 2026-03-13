@@ -116,10 +116,38 @@ ngOnInit() {
   }
 
   // Navegación
-// En detalle-venta.component.ts, agrega o modifica el método volverAPanel()
+// MODIFICA el método volverAPanel()
 volverAPanel() {
-  // Leer la ruta guardada en localStorage
+  // Leer la ruta guardada en localStorage (fallback)
   const previousRoute = localStorage.getItem('previous_ventas_route');
+  
+  // Intentar leer los query params de retorno
+  const returnData = this.route.snapshot.queryParams['return'];
+  
+  if (returnData) {
+    try {
+      const data = JSON.parse(returnData);
+      
+      // Navegar a la ruta anterior con los query params guardados
+      this.router.navigate([data.route], {
+        queryParams: data.queryParams
+      });
+      
+      // También restaurar página específica si es necesario
+      if (data.page) {
+        sessionStorage.setItem('ventas_panel_pagina', data.page.toString());
+      }
+      if (data.items) {
+        sessionStorage.setItem('ventas_panel_items', data.items.toString());
+      }
+      
+      // Limpiar después de usar
+      localStorage.removeItem('previous_ventas_route');
+      return;
+    } catch (error) {
+      console.error('Error parsing return data:', error);
+    }
+  }
   
   if (previousRoute) {
     // Limpiar el localStorage después de usarlo
