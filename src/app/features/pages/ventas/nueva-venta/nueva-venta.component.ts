@@ -121,7 +121,6 @@ validarTipoComprobanteSegunCliente(tipo: string): boolean {
       const esRUC = numeroDocumento && numeroDocumento.length === 11 && /^\d+$/.test(numeroDocumento);
       
       if (!esRUC) {
-        this.error = 'Este cliente no tiene RUC. Solo puede emitir BOLETA o NOTA DE VENTA.';
         Swal.fire({
           title: '❌ Tipo de comprobante no válido',
           text: 'El cliente seleccionado no tiene RUC. Debe emitir BOLETA o NOTA DE VENTA.',
