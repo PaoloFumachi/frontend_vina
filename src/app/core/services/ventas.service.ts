@@ -67,7 +67,6 @@ export interface EstadisticasVentas {
   totalGeneral: number;
   ventasHoy: number;
   ventasMes: number;
-  promedioTicket: number;
   ventasPorMetodoPago: {
     metodo: string;
     cantidad: number;
@@ -173,7 +172,6 @@ cancelarVentaConStock(idVenta: number, motivo: string): Observable<any> {
       totalGeneral: 0,
       ventasHoy: 0,
       ventasMes: 0,
-      promedioTicket: 0,
       ventasPorMetodoPago: [],
       ventasPorDia: []
     };

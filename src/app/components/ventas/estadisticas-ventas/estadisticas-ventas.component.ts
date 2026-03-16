@@ -780,7 +780,6 @@ export class EstadisticasVentasComponent implements OnInit {
       totalGeneral: data.totalGeneral || 0,
       ventasHoy: data.ventasHoy || 0,
       ventasMes: data.ventasMes || 0,
-      promedioTicket: data.promedioTicket || 0,
       ventasPorMetodoPago: data.ventasPorMetodoPago || [],
       ventasPorDia: data.ventasPorDia || []
     };
@@ -792,11 +791,6 @@ export class EstadisticasVentasComponent implements OnInit {
     return this.estadisticas.ventasPorMetodoPago.reduce((total, metodo) => total + metodo.cantidad, 0);
   }
   
-  // ✅ NUEVO: Calcular ticket promedio hoy
-  getTicketPromedioHoy(): number {
-    if (!this.estadisticas?.totalHoy || !this.estadisticas?.ventasHoy) return 0;
-    return this.estadisticas.totalHoy / this.estadisticas.ventasHoy;
-  }
   
   // ✅ MÉTODO para obtener estadísticas locales (como fallback)
   private getEstadisticasLocales(): EstadisticasVentas {
@@ -806,7 +800,6 @@ export class EstadisticasVentasComponent implements OnInit {
       totalGeneral: 0,
       ventasHoy: 0,
       ventasMes: 0,
-      promedioTicket: 0,
       ventasPorMetodoPago: [],
       ventasPorDia: []
     };
