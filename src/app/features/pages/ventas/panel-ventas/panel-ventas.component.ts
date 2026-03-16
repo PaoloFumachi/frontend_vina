@@ -3,7 +3,7 @@ import { Component, inject, OnInit, OnDestroy, HostListener } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subscription,Subject  } from 'rxjs';
 import { VentasService, Venta, EstadoVenta } from '../../../../core/services/ventas.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { EmitirComprobanteComponent } from '../../../../components/sunat/emitir-comprobante/emitir-comprobante.component';
@@ -11,7 +11,7 @@ import { EstadisticasVentasComponent } from '../../../../components/ventas/estad
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { FechaService } from '../../../../core/services/fecha.service';
-
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 @Component({
   selector: 'app-panel-ventas',
   standalone: true,
@@ -32,6 +32,8 @@ export class PanelVentasComponent implements OnInit, OnDestroy {
   private routeSubscription: Subscription | null = null;
   private navigationSubscription: Subscription | null = null;
    private route = inject(ActivatedRoute);
+   private searchSubject = new Subject<string>();
+   private searchSubscription: any;
   // Datos
   ventas: Venta[] = [];
   ventasFiltradas: Venta[] = [];
@@ -802,12 +804,21 @@ private calcularEstadisticasResumen(ventas: Venta[]): any {
     });
   }
 
-// MODIFICA ngOnInit para sincronizar con query params
+// MODIFICA ngOnInit para configurar el debounce
 ngOnInit() {
   this.cargarVentas();
   this.estadosVenta = this.ventasService.getEstadosVenta();
   this.cargarEstadisticasAvanzadas();
   this.inicializarFechas();
+  
+  // Configurar debounce para la búsqueda
+  this.searchSubscription = this.searchSubject.pipe(
+    debounceTime(500), // Esperar 500ms después de la última pulsación
+    distinctUntilChanged() // Solo si el valor cambió
+  ).subscribe(term => {
+    this.searchTerm = term;
+    this.aplicarFiltros();
+  });
   
   // Sincronizar filtros con query params
   this.sincronizarConQueryParams();
@@ -832,6 +843,22 @@ ngOnInit() {
     this.debugFechasCargadas();
   }, 1500);
 }
+
+
+// NUEVO: Método para manejar la búsqueda con debounce
+onSearchInput(term: string) {
+  this.searchSubject.next(term);
+}
+
+
+
+
+
+
+
+
+
+
 // NUEVO: Guardar estado antes de navegar a detalle
 private guardarEstadoAntesDeNavegar() {
   const estado = {
@@ -873,56 +900,88 @@ private sincronizarConQueryParams() {
   }
 }
 
-// NUEVO: Aplicar query params
+// REEMPLAZA el método aplicarQueryParams
 private aplicarQueryParams(params: any) {
+  console.log('📥 Aplicando query params:', params);
+  
+  // Si no hay parámetros, resetear todo
+  if (Object.keys(params).length === 0) {
+    this.filtroEstado = 0;
+    this.filtroFecha = '';
+    this.filtroEstadoPago = '';
+    this.searchTerm = '';
+    this.filtroRangoFechas = { inicio: '', fin: '' };
+    this.rangoAplicado = { inicio: '', fin: '' };
+    this.aplicarFiltros();
+    return;
+  }
+  
   let cambios = false;
   
-  if (params['estado'] && +params['estado'] !== this.filtroEstado) {
-    this.filtroEstado = +params['estado'];
-    cambios = true;
-  }
-  
-  if (params['fecha'] && params['fecha'] !== this.filtroFecha) {
-    this.filtroFecha = params['fecha'];
-    cambios = true;
-  }
-  
-  if (params['estadoPago'] && params['estadoPago'] !== this.filtroEstadoPago) {
-    this.filtroEstadoPago = params['estadoPago'];
-    cambios = true;
-  }
-  
-  if (params['busqueda'] && params['busqueda'] !== this.searchTerm) {
-    this.searchTerm = params['busqueda'];
-    cambios = true;
-  }
-  
-  if (params['rangoInicio'] && params['rangoFin']) {
-    if (params['rangoInicio'] !== this.filtroRangoFechas.inicio || 
-        params['rangoFin'] !== this.filtroRangoFechas.fin) {
-      this.filtroRangoFechas = {
-        inicio: params['rangoInicio'],
-        fin: params['rangoFin']
-      };
-      this.rangoAplicado = {
-        inicio: params['rangoInicio'],
-        fin: params['rangoFin']
-      };
+  // Estado
+  if (params['estado'] !== undefined) {
+    const nuevoEstado = +params['estado'];
+    if (nuevoEstado !== this.filtroEstado) {
+      this.filtroEstado = nuevoEstado;
       cambios = true;
     }
-  }
-  
-  if (params['pagina'] && +params['pagina'] !== this.currentPage) {
-    this.currentPage = +params['pagina'];
+  } else if (this.filtroEstado !== 0) {
+    this.filtroEstado = 0;
     cambios = true;
   }
   
-  if (params['items'] && +params['items'] !== this.itemsPerPage) {
-    this.itemsPerPage = +params['items'];
+  // Fecha específica
+  if (params['fecha'] !== undefined) {
+    if (params['fecha'] !== this.filtroFecha) {
+      this.filtroFecha = params['fecha'];
+      cambios = true;
+    }
+  } else if (this.filtroFecha !== '') {
+    this.filtroFecha = '';
+    cambios = true;
+  }
+  
+  // Estado de pago
+  if (params['estadoPago'] !== undefined) {
+    if (params['estadoPago'] !== this.filtroEstadoPago) {
+      this.filtroEstadoPago = params['estadoPago'];
+      cambios = true;
+    }
+  } else if (this.filtroEstadoPago !== '') {
+    this.filtroEstadoPago = '';
+    cambios = true;
+  }
+  
+  // Búsqueda
+  if (params['busqueda'] !== undefined) {
+    if (params['busqueda'] !== this.searchTerm) {
+      this.searchTerm = params['busqueda'];
+      cambios = true;
+    }
+  } else if (this.searchTerm !== '') {
+    this.searchTerm = '';
+    cambios = true;
+  }
+  
+  // Rango de fechas
+  const rangoInicio = params['rangoInicio'] || '';
+  const rangoFin = params['rangoFin'] || '';
+  
+  if (rangoInicio && rangoFin) {
+    if (rangoInicio !== this.filtroRangoFechas.inicio || 
+        rangoFin !== this.filtroRangoFechas.fin) {
+      this.filtroRangoFechas = { inicio: rangoInicio, fin: rangoFin };
+      this.rangoAplicado = { inicio: rangoInicio, fin: rangoFin };
+      cambios = true;
+    }
+  } else if (this.filtroRangoFechas.inicio || this.filtroRangoFechas.fin) {
+    this.filtroRangoFechas = { inicio: '', fin: '' };
+    this.rangoAplicado = { inicio: '', fin: '' };
     cambios = true;
   }
   
   if (cambios) {
+    console.log('🔄 Cambios detectados en query params, aplicando filtros');
     this.aplicarFiltros();
   }
 }
@@ -944,7 +1003,7 @@ debugFechasCargadas() {
     });
 }
 
-// MODIFICA ngOnDestroy para limpiar suscripciones
+// MODIFICA ngOnDestroy para limpiar la suscripción
 ngOnDestroy() {
   this.removeEventListeners();
   if (this.routeSubscription) {
@@ -952,6 +1011,9 @@ ngOnDestroy() {
   }
   if (this.navigationSubscription) {
     this.navigationSubscription.unsubscribe();
+  }
+  if (this.searchSubscription) {
+    this.searchSubscription.unsubscribe();
   }
 }
   cargarEstadisticasAvanzadas() {
@@ -988,12 +1050,17 @@ onFechaEspecificaChange() {
 }
 
 
-// Modifica el método limpiarFiltroRango():
+// MODIFICA limpiarFiltroRango
 limpiarFiltroRango() {
+  console.log('🧹 Limpiando filtro de rango...');
+  
   // Limpiar todo
   this.filtroRangoTemp = { inicio: '', fin: '' };
   this.filtroRangoFechas = { inicio: '', fin: '' };
   this.rangoAplicado = { inicio: '', fin: '' };
+  
+  // Actualizar URL (esto eliminará los parámetros de rango)
+  this.actualizarUrlConFiltros();
   
   this.aplicarFiltros();
   this.mostrarAlerta('Rango de fechas limpiado', 'info');
@@ -1112,16 +1179,8 @@ aplicarFiltroRangoFechas() {
     
     this.filtroFecha = '';
     
-    // Actualizar URL con rango
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: {
-        rangoInicio: this.filtroRangoFechas.inicio,
-        rangoFin: this.filtroRangoFechas.fin
-      },
-      queryParamsHandling: 'merge',
-      replaceUrl: true
-    });
+    // Usar el método unificado para actualizar URL
+    this.actualizarUrlConFiltros();
     
     this.aplicarFiltrosConRango();
     
@@ -1322,81 +1381,106 @@ formatearFechaHoraCompleta(fecha: string, hora: string): string {
 
   
 
-  aplicarFiltros() {
-    if (this.filtroRangoFechas.inicio && this.filtroRangoFechas.fin) {
-      this.aplicarFiltrosConRango();
-      return;
-    }
-
-    console.log('🔍 Aplicando filtros:', {
-      estado: this.filtroEstado,
-      fecha: this.filtroFecha,
-      estadoPago: this.filtroEstadoPago,
-      busqueda: this.searchTerm
-    });
-
-    let filtered = [...this.ventas];
-
-    if (this.filtroEstado > 0) {
-      const estadoFiltro = Number(this.filtroEstado);
-      filtered = filtered.filter(venta => venta.id_estado_venta === estadoFiltro);
-    }
-
-    if (this.filtroFecha) {
-      filtered = filtered.filter(venta => {
-        if (!venta.fecha) return false;
-        const fechaVenta = new Date(venta.fecha).toISOString().split('T')[0];
-        return fechaVenta === this.filtroFecha;
-      });
-    }
-
-    if (this.filtroEstadoPago) {
-      switch (this.filtroEstadoPago) {
-        case 'pagado':
-          filtered = filtered.filter(v => v.estado === 'Pagado');
-          break;
-        case 'pendiente':
-          filtered = filtered.filter(v => v.estado !== 'Pagado' && v.estado !== 'Cancelado');
-          break;
-        case 'cancelado':
-          filtered = filtered.filter(v => v.estado === 'Cancelado');
-          break;
-      }
-    }
-
-    if (this.searchTerm) {
-      const term = this.searchTerm.toLowerCase();
-      filtered = filtered.filter(venta => {
-        return (
-          venta.nombre_completo?.toLowerCase().includes(term) ||
-          venta.id_venta?.toString().includes(term) ||
-          venta.estado?.toLowerCase().includes(term) ||
-          venta.telefono?.includes(term) ||
-          venta.razon_social?.toLowerCase().includes(term)
-        );
-      });
-    }
-
-    console.log(`📊 Resultados filtrados: ${filtered.length} de ${this.ventas.length}`);
-    
-    this.ventasFiltradas = filtered;
-    this.totalItems = filtered.length;
-    this.currentPage = 1;
-      // Actualizar URL con nuevos filtros
-  const queryParams: any = {};
-  if (this.filtroEstado > 0) queryParams.estado = this.filtroEstado;
-  if (this.filtroFecha) queryParams.fecha = this.filtroFecha;
-  if (this.filtroEstadoPago) queryParams.estadoPago = this.filtroEstadoPago;
-  if (this.searchTerm) queryParams.busqueda = this.searchTerm;
-  
-  this.router.navigate([], {
-    relativeTo: this.route,
-    queryParams: queryParams,
-    queryParamsHandling: 'merge',
-    replaceUrl: true
+// REEMPLAZA el método aplicarFiltros completo
+aplicarFiltros() {
+  console.log('🔍 Aplicando filtros:', {
+    estado: this.filtroEstado,
+    fecha: this.filtroFecha,
+    estadoPago: this.filtroEstadoPago,
+    busqueda: this.searchTerm
   });
+
+  let filtered = [...this.ventas];
+
+  if (this.filtroEstado > 0) {
+    const estadoFiltro = Number(this.filtroEstado);
+    filtered = filtered.filter(venta => venta.id_estado_venta === estadoFiltro);
   }
 
+  if (this.filtroFecha) {
+    filtered = filtered.filter(venta => {
+      if (!venta.fecha) return false;
+      const fechaVenta = new Date(venta.fecha).toISOString().split('T')[0];
+      return fechaVenta === this.filtroFecha;
+    });
+  }
+
+  if (this.filtroEstadoPago) {
+    switch (this.filtroEstadoPago) {
+      case 'pagado':
+        filtered = filtered.filter(v => v.estado === 'Pagado');
+        break;
+      case 'pendiente':
+        filtered = filtered.filter(v => v.estado !== 'Pagado' && v.estado !== 'Cancelado');
+        break;
+      case 'cancelado':
+        filtered = filtered.filter(v => v.estado === 'Cancelado');
+        break;
+    }
+  }
+
+  if (this.searchTerm) {
+    const term = this.searchTerm.toLowerCase().trim();
+    filtered = filtered.filter(venta => {
+      return (
+        venta.nombre_completo?.toLowerCase().includes(term) ||
+        venta.id_venta?.toString().includes(term) ||
+        venta.estado?.toLowerCase().includes(term) ||
+        venta.telefono?.includes(term) ||
+        venta.razon_social?.toLowerCase().includes(term)
+      );
+    });
+  }
+
+  console.log(`📊 Resultados filtrados: ${filtered.length} de ${this.ventas.length}`);
+  
+  this.ventasFiltradas = filtered;
+  this.totalItems = filtered.length;
+  this.currentPage = 1;
+  
+  // Actualizar URL con los filtros activos SOLO si hay filtros aplicados
+  this.actualizarUrlConFiltros();
+}
+
+// NUEVO: Método separado para actualizar la URL solo con filtros que tienen valor
+private actualizarUrlConFiltros() {
+  const queryParams: any = {};
+  
+  // Solo agregar parámetros que tengan valores significativos
+  if (this.filtroEstado > 0) {
+    queryParams.estado = this.filtroEstado;
+  }
+  
+  if (this.filtroFecha) {
+    queryParams.fecha = this.filtroFecha;
+  }
+  
+  if (this.filtroEstadoPago) {
+    queryParams.estadoPago = this.filtroEstadoPago;
+  }
+  
+  if (this.searchTerm && this.searchTerm.trim() !== '') {
+    queryParams.busqueda = this.searchTerm.trim();
+  }
+  
+  if (this.filtroRangoFechas.inicio && this.filtroRangoFechas.fin) {
+    queryParams.rangoInicio = this.filtroRangoFechas.inicio;
+    queryParams.rangoFin = this.filtroRangoFechas.fin;
+  }
+  
+  // Solo navegar si los parámetros han cambiado para evitar loops infinitos
+  const currentParams = this.route.snapshot.queryParams;
+  const paramsChanged = JSON.stringify(currentParams) !== JSON.stringify(queryParams);
+  
+  if (paramsChanged) {
+    console.log('🔄 Actualizando URL con filtros:', queryParams);
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: queryParams,
+      replaceUrl: true
+    });
+  }
+}
   get ventasPendientes(): number {
     return this.ventas.filter(v => v.id_estado_venta === 1).length;
   }
@@ -1555,8 +1639,11 @@ cambiarPagina(pagina: number) {
     return pages;
   }
 
-// MODIFICA limpiarFiltros
+// REEMPLAZA el método limpiarFiltros completo
 limpiarFiltros() {
+  console.log('🧹 Limpiando todos los filtros...');
+  
+  // Resetear todos los filtros a sus valores por defecto
   this.filtroEstado = 0;
   this.filtroFecha = '';
   this.filtroEstadoPago = '';
@@ -1564,14 +1651,15 @@ limpiarFiltros() {
   this.rangoAplicado = { inicio: '', fin: '' };
   this.searchTerm = '';
   
-  // Limpiar query params
+  // Limpiar completamente los query params - ¡ESTA ES LA CLAVE!
   this.router.navigate([], {
     relativeTo: this.route,
-    queryParams: {},
-    replaceUrl: true
+    queryParams: {}, // Vacío para eliminar TODOS los parámetros
+    replaceUrl: true // Reemplazar en el historial, no agregar
+  }).then(() => {
+    console.log('✅ Query params limpiados, URL actual:', this.router.url);
+    this.aplicarFiltros(); // Aplicar filtros con valores vacíos
   });
-  
-  this.aplicarFiltros();
 }
 
   onComprobanteEmitido(event: any) {
@@ -1594,8 +1682,10 @@ hayFiltrosActivos(): boolean {
   );
 }
 
-// Modifica el método removerFiltro() para el caso 'rango':
+// MODIFICA removerFiltro
 removerFiltro(tipo: string) {
+  console.log(`🧹 Removiendo filtro: ${tipo}`);
+  
   switch (tipo) {
     case 'estado':
       this.filtroEstado = 0;
@@ -1608,11 +1698,15 @@ removerFiltro(tipo: string) {
       break;
     case 'busqueda':
       this.searchTerm = '';
+      this.searchSubject.next(''); // Notificar al subject de búsqueda
       break;
     case 'rango':
-      this.limpiarFiltroRango(); // Usar el método que limpia todo
-      break;
+      this.limpiarFiltroRango();
+      return; // limpiarFiltroRango ya llama a actualizarUrlConFiltros()
   }
+  
+  // Actualizar URL y aplicar filtros
+  this.actualizarUrlConFiltros();
   this.aplicarFiltros();
 }
   getNombreEstadoPago(estado: string): string {
