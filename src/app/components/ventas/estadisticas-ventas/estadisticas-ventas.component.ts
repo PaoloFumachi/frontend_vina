@@ -69,17 +69,6 @@ import { VentasService, EstadisticasVentas, Venta } from '../../../core/services
           
           <div class="stat-card">
             <div class="stat-icon">
-              <i class="fas fa-chart-line"></i>
-            </div>
-            <div class="stat-content">
-              <h3>S/ {{ (getTicketPromedioHoy() || 0).toFixed(2) }}</h3>
-              <p class="stat-label">Ticket Promedio</p>
-              <small class="stat-subtext">Por venta pagada</small>
-            </div>
-          </div>
-          
-          <div class="stat-card">
-            <div class="stat-icon">
               <i class="fas fa-sack-dollar"></i>
             </div>
             <div class="stat-content">
