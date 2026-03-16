@@ -475,3 +475,88 @@
 .table-wrapper::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+/* producto-list.component.css - AÑADE estos estilos al final */
+
+/* === 📊 COLUMNA STOCK MÍNIMO === */
+.column-stock-minimo {
+  min-width: 120px;
+  max-width: 150px;
+}
+
+.stock-minimo-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-weight: 600;
+  padding: 4px 0;
+}
+
+.stock-minimo-info.bajo-minimo {
+  color: #f57c00;
+  background-color: rgba(255, 152, 0, 0.05);
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
+.stock-minimo-info.sin-stock {
+  color: #d32f2f;
+  background-color: rgba(211, 47, 47, 0.05);
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
+.min-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  width: fit-content;
+}
+
+.min-badge.warning {
+  background-color: #ffe0b2;
+  color: #ef6c00;
+}
+
+.min-badge.danger {
+  background-color: #ffcdd2;
+  color: #c62828;
+}
+
+.badge-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+}
+
+/* Responsive para la nueva columna */
+@media (max-width: 1024px) {
+  .column-stock-minimo {
+    min-width: 100px;
+  }
+}
+
+@media (max-width: 768px) {
+  .column-stock-minimo {
+    min-width: 90px;
+  }
+  
+  .stock-minimo-info {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .column-stock-minimo {
+    min-width: 80px;
+  }
+  
+  .min-badge {
+    font-size: 0.65rem;
+    padding: 1px 4px;
+  }
+}

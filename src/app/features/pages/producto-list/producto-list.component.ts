@@ -48,6 +48,7 @@ export class ProductoListComponent implements OnInit {
     'descripcion',
     'precio',
     'stock',
+    'stockMinimo', // 👈 NUEVA COLUMNA
     'categoria',
     'marca',
     'paisOrigen',
@@ -134,6 +135,7 @@ export class ProductoListComponent implements OnInit {
       next: (products) => {
         const productsWithPlaceholders = products.map(p => ({
           ...p,
+          stockMinimo: p.stock_minimo || 0, // 👈 AÑADIR
           categoriaNombre: 'No disponible',
           marcaNombre: 'No disponible',
           proveedorNombre: 'No disponible',

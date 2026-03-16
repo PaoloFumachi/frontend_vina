@@ -78,6 +78,7 @@ getProductsWithDetails(): Observable<any[]> {
 
         return {
           ...product,
+           stockMinimo: product.stock_minimo || 0, // 👈 AÑADIR
           paisOrigenNombre: pais ? pais.nombre : 'No disponible',
           categoriaNombre: categoria ? categoria.nombre : 'No disponible',
           marcaNombre: marca ? marca.nombre : 'No disponible'
@@ -99,6 +100,7 @@ getProductsForSales(): Observable<any[]> {
         descripcion: producto.descripcion,
         precio: producto.precio,
         stock: producto.stock,
+         stockMinimo: producto.stock_minimo || 0, // 👈 AÑADIR
         categoriaId: producto.categoriaId,
         marcaId: producto.marcaId,
         // Placeholders para la vista

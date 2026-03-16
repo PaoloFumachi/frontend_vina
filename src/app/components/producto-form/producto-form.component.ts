@@ -82,6 +82,7 @@ private createForm(): FormGroup {
     descripcion: ['', [Validators.required, Validators.minLength(3)]],
     precio: ['', [Validators.required, Validators.min(0.01)]],
     stock: [{ value: 0, disabled: true }, [Validators.required, Validators.min(0)]], // 👈 SIEMPRE DESHABILITADO
+    stockMinimo: [0, [Validators.required, Validators.min(0)]], // 👈 NUEVO CAMPO
     categoriaId: ['', Validators.required],
     marcaId: ['', Validators.required],
     paisOrigenId: ['', Validators.required],
@@ -95,6 +96,7 @@ private loadFormData(product: Product): void {
       descripcion: product.descripcion || '',
       precio: product.precio || 0,
       stock: product.stock || 0, // El valor se asigna, pero el control sigue deshabilitado
+      stockMinimo: product.stock_minimo || 0, // 👈 NUEVO
       categoriaId: product.categoriaId || '',
       marcaId: product.marcaId || '',
       paisOrigenId: product.paisOrigenId || '',

@@ -4,6 +4,7 @@ export interface Product {
   descripcion: string;
   precio: number;
   stock: number;
+  stock_minimo?: number; // 👈 NUEVO CAMPO OPCIONAL
   categoriaId: number;
   marcaId: number;
   paisOrigenId: number;
