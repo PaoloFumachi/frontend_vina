@@ -93,9 +93,9 @@ ngOnInit() {
   }, 2000);
   
   // ✅ NUEVO: Verificar configuración de empresa
-  setTimeout(() => {
-    this.verificarConfiguracionEmpresa();
-  }, 5000);
+  //setTimeout(() => {
+   // this.verificarConfiguracionEmpresa();
+  //}, 5000);
 }
 
 // NUEVO: Restaurar estado guardado

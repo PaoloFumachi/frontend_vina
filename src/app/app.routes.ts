@@ -225,19 +225,5 @@ export const routes: Routes = [
     data: { requiredModule: 'sunat', expectedRoles: [1, 2] }
   },
 
-  // =============================================
-  // {
-  //   path: 'inventario/movimiento',  // ❌ OBSOLETA
-  //   component: MovimientoStockListComponent,
-  //   canActivate: [authGuard, roleGuard],
-  //   data: { requiredModule: 'inventario_movimiento', expectedRoles: [4] }
-  // },
-  // {
-  //   path: 'lotes',  // ❌ OBSOLETA
-  //   component: LoteListComponent,
-  //   canActivate: [authGuard, roleGuard],
-  //   data: { requiredModule: 'lotes', expectedRoles: [4] }
-  // },
-
   { path: '**', redirectTo: '/login' }
 ];
