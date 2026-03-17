@@ -13,11 +13,15 @@ import { DeteccionCambioDiaService } from '../../../../core/services/deteccion-c
 import { DineroPendienteTotalResponse, RegularizarPendienteResponse } from '../../../../core/services/entrega-dinero.service';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+// En historial-entregas.component.ts, en la sección de imports (línea 1-10 aproximadamente)
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { ConfirmacionModalComponent } from '../../../../components/confirmacion-modal/confirmacion-modal.component';
+import { EntregarDineroModalComponent } from '../../../../components/entregar-dinero-modal/entregar-dinero-modal.component';
 
 @Component({
   selector: 'app-historial-entregas',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule,MatDialogModule],
   templateUrl: './historial-entregas.component.html',
   styleUrls: ['../repartidor-styles.css']
 })
@@ -30,6 +34,7 @@ export class HistorialEntregasComponent implements OnInit, OnDestroy {
   private subscription: Subscription = new Subscription();
   private dataSubscription: Subscription = new Subscription();
   private deteccionCambioDiaService = inject(DeteccionCambioDiaService);
+  public dialog = inject(MatDialog); // <-- Agrega esta línea
   private route = inject(ActivatedRoute);
   // Datos principales
   historial: RepartidorVenta[] = [];
@@ -141,31 +146,6 @@ private guardarEstadoAntesDeNavegar() {
   console.log('💾 Estado de historial guardado:', estado);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // NUEVO: Método para verificar consistencia de datos
 private verificarConsistenciaDatos() {
   const hoy = this.getTotalIngresos();
@@ -267,14 +247,8 @@ const mensaje = `*${empresaLogo} ${empresaNombre} - NOTIFICACIÓN*\n\n` +
                   `*⌛ URGENCIA:* Normal\n` +
                   `*🏢 EMPRESA:* ${empresa.nombre}`;
 
-  // Codificar el mensaje para URL
-  const mensajeCodificado = encodeURIComponent(mensaje);
-  
-  // Crear URL de WhatsApp
-  const whatsappUrl = `https://wa.me/${NUMERO_ADMINISTRADOR}?text=${mensajeCodificado}`;
-  
-  // Abrir WhatsApp en nueva ventana
-  window.open(whatsappUrl, '_blank');
+  // *** AQUÍ ESTÁ EL CAMBIO: Usar el nuevo método con blob ***
+  this.abrirWhatsAppConMensaje(NUMERO_ADMINISTRADOR, mensaje);
 }
 
 /**
@@ -713,7 +687,7 @@ public mostrarModalWhatsAppPersonalizado() {
         <p style="margin: 0 0 10px 0; font-weight: 600; color: #007bff;">
           <i class="fas fa-eye"></i> Vista previa del mensaje:
         </p>
-        <div id="vistaPreviaMensaje" style="background: white; padding: 10px; border-radius: 5px; font-size: 0.9em; color: #666; line-height: 1.5;">
+        <div id="vistaPreviaMensaje" style="background: white; padding: 10px; border-radius: 5px; font-size: 0.9em; color: #666; line-height: 1.5; white-space: pre-wrap;">
           Cargando vista previa...
         </div>
       </div>
@@ -740,57 +714,57 @@ public mostrarModalWhatsAppPersonalizado() {
     const btnCancelar = modal.querySelector('#btnCancelar');
 
     // Función para actualizar vista previa
-    // En la función actualizarVistaPrevia dentro de mostrarModalWhatsAppPersonalizado:
-const actualizarVistaPrevia = () => {
-  // Obtener información del repartidor
-  let nombreRepartidor = 'Repartidor';
-  const usuario = this.authService.getCurrentUser();
-  if (usuario) {
-    nombreRepartidor = usuario.nombre || 'Repartidor';
-  }
+    const actualizarVistaPrevia = () => {
+      // Obtener información del repartidor
+      let nombreRepartidor = 'Repartidor';
+      const usuario = this.authService.getCurrentUser();
+      if (usuario) {
+        nombreRepartidor = usuario.nombre || 'Repartidor';
+      }
 
-// Obtener información de la empresa - IGNORAR la imagen
-const empresa = this.obtenerNombreEmpresa();
-const empresaLogo = empresa.logo; // Solo el emoji/texto, NO la imagen Base64
-const empresaNombre = empresa.nombre;
+      // Obtener información de la empresa
+      const empresa = this.obtenerNombreEmpresa();
+      const empresaLogo = empresa.logo;
+      const empresaNombre = empresa.nombre;
 
-  const hoy = new Date();
-  const fechaFormateada = hoy.toLocaleDateString('es-PE', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
+      const hoy = new Date();
+      const fechaFormateada = hoy.toLocaleDateString('es-PE', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
 
-  // Obtener tipo de entrega seleccionado
-  let tipoEntregaTexto = '';
-  if (tipoEntregaSelect.value === 'otro' && otroMetodoInput.value.trim()) {
-    tipoEntregaTexto = otroMetodoInput.value.trim();
-  } else {
-    tipoEntregaTexto = tipoEntregaSelect.options[tipoEntregaSelect.selectedIndex].text;
-  }
+      // Obtener tipo de entrega seleccionado
+      let tipoEntregaTexto = '';
+      if (tipoEntregaSelect.value === 'otro' && otroMetodoInput.value.trim()) {
+        tipoEntregaTexto = otroMetodoInput.value.trim();
+      } else {
+        tipoEntregaTexto = tipoEntregaSelect.options[tipoEntregaSelect.selectedIndex].text;
+      }
 
-  // Obtener urgencia
-  const urgenciaTexto = urgenciaSelect.options[urgenciaSelect.selectedIndex].text;
-  const mensajeAdicional = mensajeAdicionalTextarea.value.trim();
+      // Obtener urgencia
+      const urgenciaTexto = urgenciaSelect.options[urgenciaSelect.selectedIndex].text;
+      const mensajeAdicional = mensajeAdicionalTextarea.value.trim();
 
-  // Construir mensaje CON NOMBRE PERSONALIZADO
-  const mensaje = `*${empresaLogo} ${empresaNombre} - NOTIFICACIÓN*\n\n` +
-                  `*👤 REPARTIDOR:* ${nombreRepartidor}\n` +
-                  `*💰 MONTO PENDIENTE:* S/ ${totalPendiente.toFixed(2)}\n` +
-                  `*📅 FECHA:* ${fechaFormateada}\n\n` +
-                  `*📋 DETALLE:*\n` +
-                  `Tengo dinero pendiente de días anteriores que necesita ser regularizado.\n\n` +
-                  `*✅ SOLICITO:*\n` +
-                  `1. ${tipoEntregaTexto}\n` +
-                  `2. Regularización en el sistema\n` +
-                  `3. Confirmación de recepción\n\n` +
-                  `${mensajeAdicional ? `*💬 MENSAJE ADICIONAL:*\n${mensajeAdicional}\n\n` : ''}` +
-                  `*⌛ URGENCIA:* ${urgenciaTexto}\n` +
-                  `*🏢 EMPRESA:* ${empresaNombre}`;
+      // Construir mensaje CON NOMBRE PERSONALIZADO
+      const mensaje = `*${empresaLogo} ${empresaNombre} - NOTIFICACIÓN*\n\n` +
+                      `*👤 REPARTIDOR:* ${nombreRepartidor}\n` +
+                      `*💰 MONTO PENDIENTE:* S/ ${totalPendiente.toFixed(2)}\n` +
+                      `*📅 FECHA:* ${fechaFormateada}\n\n` +
+                      `*📋 DETALLE:*\n` +
+                      `Tengo dinero pendiente de días anteriores que necesita ser regularizado.\n\n` +
+                      `*✅ SOLICITO:*\n` +
+                      `1. ${tipoEntregaTexto}\n` +
+                      `2. Regularización en el sistema\n` +
+                      `3. Confirmación de recepción\n\n` +
+                      `${mensajeAdicional ? `*💬 MENSAJE ADICIONAL:*\n${mensajeAdicional}\n\n` : ''}` +
+                      `*⌛ URGENCIA:* ${urgenciaTexto}\n` +
+                      `*🏢 EMPRESA:* ${empresaNombre}`;
 
-  vistaPreviaDiv.textContent = mensaje;
-};
+      vistaPreviaDiv.innerHTML = mensaje.replace(/\n/g, '<br>');
+    };
+    
     // Actualizar vista previa cuando cambian los inputs
     tipoEntregaSelect.addEventListener('change', () => {
       if (tipoEntregaSelect.value === 'otro') {
@@ -813,87 +787,83 @@ const empresaNombre = empresa.nombre;
     // Inicializar vista previa
     actualizarVistaPrevia();
 
-   // Y también modifica el evento click del botón Enviar WhatsApp:
-// Reemplaza el evento click del botón Enviar WhatsApp con esta versión corregida:
-if (btnEnviarWhatsApp) {
-  btnEnviarWhatsApp.addEventListener('click', () => {
-    // Generar mensaje final
-    let nombreRepartidor = 'Repartidor';
-    const usuario = this.authService.getCurrentUser();
-    if (usuario) {
-      nombreRepartidor = usuario.nombre || 'Repartidor';
+    // Evento del botón Enviar WhatsApp - VERSIÓN CORREGIDA
+    if (btnEnviarWhatsApp) {
+      btnEnviarWhatsApp.addEventListener('click', () => {
+        // Generar mensaje final
+        let nombreRepartidor = 'Repartidor';
+        const usuario = this.authService.getCurrentUser();
+        if (usuario) {
+          nombreRepartidor = usuario.nombre || 'Repartidor';
+        }
+
+        // Obtener información de la empresa
+        const empresa = this.obtenerNombreEmpresa();
+        const empresaLogo = empresa.logo;
+        const empresaNombre = empresa.nombre;
+
+        const hoy = new Date();
+        const fechaFormateada = hoy.toLocaleDateString('es-PE', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+
+        let tipoEntregaTexto = '';
+        if (tipoEntregaSelect.value === 'otro' && otroMetodoInput.value.trim()) {
+          tipoEntregaTexto = otroMetodoInput.value.trim();
+        } else {
+          tipoEntregaTexto = tipoEntregaSelect.options[tipoEntregaSelect.selectedIndex].text;
+        }
+
+        const urgenciaTexto = urgenciaSelect.options[urgenciaSelect.selectedIndex].text;
+        const mensajeAdicional = mensajeAdicionalTextarea.value.trim();
+
+        const mensaje = `*${empresaLogo} ${empresaNombre} - NOTIFICACIÓN*\n\n` +
+                        `*👤 REPARTIDOR:* ${nombreRepartidor}\n` +
+                        `*💰 MONTO PENDIENTE:* S/ ${totalPendiente.toFixed(2)}\n` +
+                        `*📅 FECHA:* ${fechaFormateada}\n\n` +
+                        `*📋 DETALLE:*\n` +
+                        `Tengo dinero pendiente de días anteriores que necesita ser regularizado.\n\n` +
+                        `*✅ SOLICITO:*\n` +
+                        `1. ${tipoEntregaTexto}\n` +
+                        `2. Regularización en el sistema\n` +
+                        `3. Confirmación de recepción\n\n` +
+                        `${mensajeAdicional ? `*💬 MENSAJE ADICIONAL:*\n${mensajeAdicional}\n\n` : ''}` +
+                        `*⌛ URGENCIA:* ${urgenciaTexto}\n` +
+                        `*🏢 EMPRESA:* ${empresaNombre}`;
+
+        // Obtener número del administrador
+        const NUMERO_ADMINISTRADOR = localStorage.getItem('admin_whatsapp') || '51987654321';
+        
+        // Verificar si el número está configurado
+        if (NUMERO_ADMINISTRADOR === '51987654321') {
+          const configurar = confirm(
+            '⚠️ El número del administrador no está configurado.\n\n' +
+            'Número predeterminado: +51987654321\n\n' +
+            '¿Deseas configurar el número correcto ahora?'
+          );
+          
+          if (configurar) {
+            document.body.removeChild(modal);
+            this.configurarContactoAdministrador();
+            return;
+          }
+        }
+        // *** AGREGAR ESTA LÍNEA PARA DIAGNÓSTICO ***
+        this.diagnosticarProblemaEmojis(mensaje);
+        // *** AQUÍ ESTÁ EL CAMBIO: Usar el nuevo método con blob ***
+        this.abrirWhatsAppConMensaje(NUMERO_ADMINISTRADOR, mensaje);
+        
+        // Cerrar modal y mostrar confirmación
+        setTimeout(() => {
+          document.body.removeChild(modal);
+          alert('✅ Mensaje preparado para enviar por WhatsApp.\n\n' +
+                'El administrador ha sido notificado sobre tu dinero pendiente.');
+        }, 500);
+      });
     }
-
-    // Obtener información de la empresa
-    const empresa = this.obtenerNombreEmpresa();
-    const empresaLogo = empresa.logo;
-    const empresaNombre = empresa.nombre;
-
-    const hoy = new Date();
-    const fechaFormateada = hoy.toLocaleDateString('es-PE', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-
-    let tipoEntregaTexto = '';
-    if (tipoEntregaSelect.value === 'otro' && otroMetodoInput.value.trim()) {
-      tipoEntregaTexto = otroMetodoInput.value.trim();
-    } else {
-      tipoEntregaTexto = tipoEntregaSelect.options[tipoEntregaSelect.selectedIndex].text;
-    }
-
-    const urgenciaTexto = urgenciaSelect.options[urgenciaSelect.selectedIndex].text;
-    const mensajeAdicional = mensajeAdicionalTextarea.value.trim();
-
-    const mensaje = `*${empresaLogo} ${empresaNombre} - NOTIFICACIÓN*\n\n` +
-                    `*👤 REPARTIDOR:* ${nombreRepartidor}\n` +
-                    `*💰 MONTO PENDIENTE:* S/ ${totalPendiente.toFixed(2)}\n` +
-                    `*📅 FECHA:* ${fechaFormateada}\n\n` +
-                    `*📋 DETALLE:*\n` +
-                    `Tengo dinero pendiente de días anteriores que necesita ser regularizado.\n\n` +
-                    `*✅ SOLICITO:*\n` +
-                    `1. ${tipoEntregaTexto}\n` +
-                    `2. Regularización en el sistema\n` +
-                    `3. Confirmación de recepción\n\n` +
-                    `${mensajeAdicional ? `*💬 MENSAJE ADICIONAL:*\n${mensajeAdicional}\n\n` : ''}` +
-                    `*⌛ URGENCIA:* ${urgenciaTexto}\n` +
-                    `*🏢 EMPRESA:* ${empresaNombre}`;
-
-    // Obtener número del administrador
-    const NUMERO_ADMINISTRADOR = localStorage.getItem('admin_whatsapp') || '51987654321';
-    
-    // Verificar si el número está configurado
-    if (NUMERO_ADMINISTRADOR === '51987654321') {
-      const configurar = confirm(
-        '⚠️ El número del administrador no está configurado.\n\n' +
-        'Número predeterminado: +51987654321\n\n' +
-        '¿Deseas configurar el número correcto ahora?'
-      );
-      
-      if (configurar) {
-        document.body.removeChild(modal);
-        this.configurarContactoAdministrador();
-        return;
-      }
-    }
-
-    // Codificar y abrir WhatsApp
-    const mensajeCodificado = encodeURIComponent(mensaje);
-    const whatsappUrl = `https://wa.me/${NUMERO_ADMINISTRADOR}?text=${mensajeCodificado}`;
-    
-    // Abrir WhatsApp en nueva ventana
-    window.open(whatsappUrl, '_blank');
-    
-    // Mostrar confirmación
-    setTimeout(() => {
-      document.body.removeChild(modal);
-      alert('✅ Mensaje preparado para enviar por WhatsApp.\n\n' +
-            'El administrador ha sido notificado sobre tu dinero pendiente.');
-    }, 500);
-  });
-}
 
     if (btnCancelar) {
       btnCancelar.addEventListener('click', () => {
@@ -902,6 +872,7 @@ if (btnEnviarWhatsApp) {
     }
   });
 }
+
 // 4. Agrega este método para abrir la modal directamente desde el panel:
 public abrirNotificacionDineroPendiente() {
   const totalPendiente = this.getDineroPendienteSoloAnteriores();
@@ -1158,39 +1129,72 @@ const actualizarResumenSeleccion = () => {
           totalSeleccionado += totalSinFecha;
         }
 
-        // Confirmación
-        const confirmacion = confirm(
-          `¿Confirmas la regularización de:\n` +
-          `${diasSeleccionados.length} día(s) con fecha específica\n` +
-          `${incluirSinFecha ? '+ 1 grupo de ventas sin fecha específica\n' : ''}` +
-          `Total: S/ ${totalSeleccionado.toFixed(2)}\n\n` +
-          `Método: ${metodo}`
-        );
+        const detalles = [];
 
-        if (confirmacion) {
-          document.body.removeChild(modal);
-          
-          // Regularizar cada día seleccionado (válidos)
-          diasSeleccionados.forEach((dia: any) => {
-            if (dia.fecha && dia.fecha !== 'Sin fecha específica') {
-              const [day, month, year] = dia.fecha.split('/');
-              if (day && month && year) {
-                const fechaISO = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-                console.log(`📅 Regularizando fecha: ${dia.fecha} -> ${fechaISO}`);
-                this.regularizarEntregasPendientes(dia.fecha, dia.total, metodo);
-              }
-            }
-          });
-          
-          // Regularizar ventas sin fecha específica (usar fecha de hoy)
-          if (incluirSinFecha) {
-            const totalSinFecha = diasSinFecha.reduce((sum, dia) => sum + (dia.total || 0), 0);
-            const hoy = new Date().toISOString().split('T')[0];
-            this.regularizarEntregasSinFecha(hoy, totalSinFecha, metodo);
-          }
-        }
+    // Agregar días con fecha específica
+    diasSeleccionados.forEach((dia: any) => {
+      if (dia.fecha && dia.fecha !== 'Sin fecha específica') {
+        detalles.push({
+          label: `📅 ${dia.fecha}`,
+          valor: `S/ ${dia.total.toFixed(2)}`,
+          icono: 'event'
+        });
+      }
+    });
+
+    // Agregar ventas sin fecha si están seleccionadas
+    if (incluirSinFecha) {
+      const totalSinFecha = diasSinFecha.reduce((sum, dia) => sum + (dia.total || 0), 0);
+      detalles.push({
+        label: '📌 Ventas sin fecha específica',
+        valor: `S/ ${totalSinFecha.toFixed(2)}`,
+        icono: 'help'
       });
     }
+
+    // Cerrar el modal personalizado actual
+    document.body.removeChild(modal);
+
+    // Abrir modal de confirmación de Angular Material
+    const dialogRef = this.dialog.open(ConfirmacionModalComponent, {
+      width: '550px',
+      maxWidth: '95vw',
+      data: {
+        titulo: 'Confirmar Regularización',
+        mensaje: '¿Estás seguro de regularizar las siguientes entregas pendientes?',
+        tipo: 'regularizacion',
+        detalles: detalles,
+        total: `Total: S/ ${totalSeleccionado.toFixed(2)}`,
+        metodo: metodo,
+        confirmText: '✅ Regularizar',
+        cancelText: 'Cancelar'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // Procesar cada día seleccionado
+        diasSeleccionados.forEach((dia: any) => {
+          if (dia.fecha && dia.fecha !== 'Sin fecha específica') {
+            const [day, month, year] = dia.fecha.split('/');
+            if (day && month && year) {
+              const fechaISO = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+              console.log(`📅 Regularizando fecha: ${dia.fecha} -> ${fechaISO}`);
+              this.regularizarEntregasPendientes(dia.fecha, dia.total, metodo);
+            }
+          }
+        });
+
+        // Regularizar ventas sin fecha específica
+        if (incluirSinFecha) {
+          const totalSinFecha = diasSinFecha.reduce((sum, dia) => sum + (dia.total || 0), 0);
+          const hoy = new Date().toISOString().split('T')[0];
+          this.regularizarEntregasSinFecha(hoy, totalSinFecha, metodo);
+        }
+      }
+    });
+  });
+} // <-- Este es el cierre correcto del if (btnConfirmar)
 
     if (btnCancelar) {
       btnCancelar.addEventListener('click', () => {
@@ -2570,30 +2574,60 @@ public registrarEntregaDineroHoy() {
       return;
     }
 
-    const confirmacion = confirm(
-      `¿Deseas registrar la entrega de S/ ${totalHoy.toFixed(2)} al administrador?\n\n` +
-      `✅ Solo ventas del día de hoy\n` +
-      `📅 Fecha: ${new Date().toLocaleDateString('es-PE')}\n` +
-      `🕒 Hora actual: ${new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}\n\n` +
-      `💵 Se registrará como entrega en efectivo.`
-    );
+    // Abrir modal para seleccionar método de pago
+    const dialogRef = this.dialog.open(EntregarDineroModalComponent, {
+      width: '600px',
+      maxWidth: '95vw',
+      data: {
+        total: totalHoy,
+        fecha: new Date().toLocaleDateString('es-PE'),
+        hora: new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })
+      }
+    });
 
-    if (confirmacion) {
-      this.loading = true;
+    dialogRef.afterClosed().subscribe(result => {
+      if (result && result.confirmado) {
+        this.procesarEntregaDinero(totalHoy, result.metodoId, result.metodoNombre);
+      }
+    });
+  });
+}
+
+/**
+ * Procesar la entrega de dinero con el método seleccionado
+ */
+private procesarEntregaDinero(total: number, metodoId: number, metodoNombre: string): void {
+  this.loading = true;
+  
+  // Convertir ID a nombre para el backend
+  let metodoBackend = 'efectivo';
+  switch (metodoId) {
+    case 1: metodoBackend = 'efectivo'; break;
+    case 2: metodoBackend = 'yape'; break;
+    case 3: metodoBackend = 'transferencia'; break;
+    case 4: metodoBackend = 'tarjeta'; break;
+    default: metodoBackend = 'efectivo';
+  }
+
+  this.entregaDineroService.registrarEntrega(total, metodoBackend).subscribe({
+    next: (response) => {
+      console.log('✅ Entrega de HOY registrada:', response);
       
-      this.entregaDineroService.registrarEntrega(totalHoy, 'efectivo').subscribe({
-        next: (response) => {
-          console.log('✅ Entrega de HOY registrada:', response);
-          alert('✅ Entrega de dinero del día de hoy registrada exitosamente');
-          this.recargarDatosCompletamente();
-          this.loading = false;
-        },
-        error: (error) => {
-          console.error('Error registrando entrega de hoy:', error);
-          alert('❌ Error al registrar entrega: ' + (error.error?.error || error.message));
-          this.loading = false;
-        }
-      });
+      // Mostrar mensaje de éxito con el método seleccionado
+      const mensajeExito = `✅ Entrega de dinero registrada exitosamente\n\n` +
+                          `💰 Monto: S/ ${total.toFixed(2)}\n` +
+                          `💳 Método: ${metodoNombre}\n` +
+                          `📅 Fecha: ${new Date().toLocaleDateString('es-PE')}\n` +
+                          `🕒 Hora: ${new Date().toLocaleTimeString('es-PE')}`;
+      
+      alert(mensajeExito);
+      this.recargarDatosCompletamente();
+      this.loading = false;
+    },
+    error: (error) => {
+      console.error('Error registrando entrega de hoy:', error);
+      alert('❌ Error al registrar entrega: ' + (error.error?.error || error.message));
+      this.loading = false;
     }
   });
 }
@@ -2603,7 +2637,6 @@ public registrarEntregaDineroHoy() {
 public configurarNombreEmpresa() {
   const nombreEmpresaActual = localStorage.getItem('empresa_nombre') || 'Distribuidora de Agua';
   const logoEmpresaActual = localStorage.getItem('empresa_logo') || '🚰';
-  const logoImagenBase64 = localStorage.getItem('empresa_logo_imagen');
   
   const html = `
     <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 500px;">
@@ -2614,74 +2647,43 @@ public configurarNombreEmpresa() {
         </p>
         <p style="margin: 0; font-size: 0.9em; color: #666;">
           Esta información aparecerá en todas las notificaciones enviadas por WhatsApp.
+          <strong>Solo se pueden usar emojis como logo</strong> (WhatsApp no muestra imágenes).
         </p>
       </div>
       
       <div style="margin-bottom: 20px;">
-        <!-- Logo de la empresa (imagen) -->
+        <!-- Logo de la empresa (SOLO EMOJI) -->
         <div style="margin-bottom: 20px;">
           <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #495057;">
-            <i class="fas fa-image"></i> Logo de la empresa:
+            <i class="fas fa-smile"></i> Logo (emoji):
           </label>
           
           <div style="display: flex; flex-direction: column; gap: 10px;">
             <!-- Vista previa del logo -->
             <div id="logo-preview-container" style="display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 10px;">
-              <div id="logo-preview" style="width: 80px; height: 80px; border: 2px dashed #ced4da; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; overflow: hidden;">
-                ${logoImagenBase64 ? 
-                  `<img src="${logoImagenBase64}" alt="Logo empresa" style="max-width: 100%; max-height: 100%; object-fit: contain;">` :
-                  `<span style="font-size: 40px;">${logoEmpresaActual}</span>`
-                }
+              <div id="logo-preview" style="width: 80px; height: 80px; border: 2px dashed #ced4da; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: #f8f9fa;">
+                <span id="logo-emoji-preview" style="font-size: 40px;">${logoEmpresaActual}</span>
               </div>
               <div id="logo-text" style="font-size: 0.85em; color: #6c757d; text-align: center;">
-                ${logoImagenBase64 ? 'Logo cargado' : `Emoji: ${logoEmpresaActual}`}
+                Emoji actual: ${logoEmpresaActual}
               </div>
             </div>
             
-            <!-- Opciones para el logo -->
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-              <!-- Opción 1: Subir imagen -->
-              <div>
-                <label style="display: block; margin-bottom: 5px; font-weight: 500; color: #495057; font-size: 0.9em;">
-                  <i class="fas fa-upload"></i> Subir imagen:
-                </label>
-                <input type="file" id="logo-file" accept="image/*" capture="environment"
-                       style="width: 100%; padding: 8px; border: 1px solid #ced4da; border-radius: 5px; font-size: 14px;">
-                <p style="margin: 5px 0 0 0; font-size: 0.75em; color: #6c757d;">
-                  <i class="fas fa-mobile-alt"></i> Desde dispositivo: PNG, JPG (máx. 500KB)
-                </p>
-              </div>
-              
-              <!-- Opción 2: Usar emoji -->
-              <div>
-                <label style="display: block; margin-bottom: 5px; font-weight: 500; color: #495057; font-size: 0.9em;">
-                  <i class="fas fa-smile"></i> O usar emoji:
-                </label>
-                <div style="display: flex; gap: 10px;">
-                  <input type="text" id="logo-emoji" 
-                         value="${logoEmpresaActual}"
-                         placeholder="Ej: 🚰, 💧, 🏭"
-                         style="flex: 1; padding: 8px; border: 1px solid #ced4da; border-radius: 5px; font-size: 16px;">
-                  <button id="btn-usar-emoji" style="padding: 8px 15px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">
-                    Usar
-                  </button>
-                </div>
-              </div>
-              
-              <!-- Opción 3: Eliminar logo -->
-              ${logoImagenBase64 ? `
-                <div>
-                  <button id="btn-eliminar-logo" style="padding: 8px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; width: 100%; font-size: 0.9em;">
-                    <i class="fas fa-trash"></i> Eliminar imagen
-                  </button>
-                </div>
-              ` : ''}
+            <!-- Campo para ingresar emoji -->
+            <div>
+              <input type="text" id="logo-emoji" 
+                     value="${logoEmpresaActual}"
+                     placeholder="Escribe un emoji (ej: 🚰, 💧, 🏪)"
+                     style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 5px; font-size: 16px; text-align: center;">
+              <p style="margin: 5px 0 0 0; font-size: 0.75em; color: #6c757d;">
+                <i class="fas fa-lightbulb"></i> Puedes usar cualquier emoji: 🚰 (agua), 💧 (gota), 🏪 (tienda), 🏭 (fábrica), 🍽️ (restaurante)
+              </p>
             </div>
           </div>
         </div>
         
         <!-- Nombre de la empresa -->
-        <div style="margin-bottom: 15px;">
+        <div style="margin-bottom: 20px;">
           <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #495057;">
             <i class="fas fa-signature"></i> Nombre de la empresa:
           </label>
@@ -2691,39 +2693,93 @@ public configurarNombreEmpresa() {
                  style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 5px; font-size: 16px;">
         </div>
         
-        <!-- Ejemplos de nombres para diferentes tipos de empresas -->
-        <div style="background: #e7f3ff; padding: 10px; border-radius: 5px; margin-bottom: 15px; border-left: 3px solid #007bff;">
-          <p style="margin: 0 0 5px 0; font-weight: 600; color: #004085; font-size: 0.85em;">
-            <i class="fas fa-lightbulb"></i> Ejemplos:
+        <!-- Ejemplos de emojis (SIN TEXTO) -->
+        <div style="background: #e7f3ff; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 3px solid #007bff;">
+          <p style="margin: 0 0 10px 0; font-weight: 600; color: #004085; font-size: 0.9em;">
+            <i class="fas fa-lightbulb"></i> Emojis sugeridos (haz clic para usarlos):
           </p>
-          <div style="display: flex; flex-wrap: wrap; gap: 5px; font-size: 0.8em;">
-            <span style="background: white; padding: 3px 8px; border-radius: 3px; cursor: pointer;" class="ejemplo-empresa" data-nombre="Agua Viña" data-emoji="🚰">🚰 Agua Viña</span>
-            <span style="background: white; padding: 3px 8px; border-radius: 3px; cursor: pointer;" class="ejemplo-empresa" data-nombre="Distribuidora Aqua" data-emoji="💧">💧 Aqua</span>
-            <span style="background: white; padding: 3px 8px; border-radius: 3px; cursor: pointer;" class="ejemplo-empresa" data-nombre="Bodega Central" data-emoji="🏪">🏪 Bodega</span>
-            <span style="background: white; padding: 3px 8px; border-radius: 3px; cursor: pointer;" class="ejemplo-empresa" data-nombre="Minimarket Express" data-emoji="🏪">🏪 Minimarket</span>
-            <span style="background: white; padding: 3px 8px; border-radius: 3px; cursor: pointer;" class="ejemplo-empresa" data-nombre="Restaurante Delicias" data-emoji="🍽️">🍽️ Restaurante</span>
+          <div style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center;">
+            <span style="width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #ced4da; transition: all 0.3s ease; font-size: 30px;" 
+                  class="ejemplo-emoji" 
+                  data-emoji="🚰"
+                  title="Agua"
+                  onmouseover="this.style.borderColor='#007bff'; this.style.transform='scale(1.1)'"
+                  onmouseout="this.style.borderColor='#ced4da'; this.style.transform='scale(1)'">
+              🚰
+            </span>
+            <span style="width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #ced4da; transition: all 0.3s ease; font-size: 30px;" 
+                  class="ejemplo-emoji" 
+                  data-emoji="💧"
+                  title="Gota de agua"
+                  onmouseover="this.style.borderColor='#007bff'; this.style.transform='scale(1.1)'"
+                  onmouseout="this.style.borderColor='#ced4da'; this.style.transform='scale(1)'">
+              💧
+            </span>
+            <span style="width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #ced4da; transition: all 0.3s ease; font-size: 30px;" 
+                  class="ejemplo-emoji" 
+                  data-emoji="🏪"
+                  title="Tienda"
+                  onmouseover="this.style.borderColor='#007bff'; this.style.transform='scale(1.1)'"
+                  onmouseout="this.style.borderColor='#ced4da'; this.style.transform='scale(1)'">
+              🏪
+            </span>
+            <span style="width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #ced4da; transition: all 0.3s ease; font-size: 30px;" 
+                  class="ejemplo-emoji" 
+                  data-emoji="🏭"
+                  title="Fábrica"
+                  onmouseover="this.style.borderColor='#007bff'; this.style.transform='scale(1.1)'"
+                  onmouseout="this.style.borderColor='#ced4da'; this.style.transform='scale(1)'">
+              🏭
+            </span>
+            <span style="width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #ced4da; transition: all 0.3s ease; font-size: 30px;" 
+                  class="ejemplo-emoji" 
+                  data-emoji="🍽️"
+                  title="Restaurante"
+                  onmouseover="this.style.borderColor='#007bff'; this.style.transform='scale(1.1)'"
+                  onmouseout="this.style.borderColor='#ced4da'; this.style.transform='scale(1)'">
+              🍽️
+            </span>
+            <span style="width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #ced4da; transition: all 0.3s ease; font-size: 30px;" 
+                  class="ejemplo-emoji" 
+                  data-emoji="🏬"
+                  title="Supermercado"
+                  onmouseover="this.style.borderColor='#007bff'; this.style.transform='scale(1.1)'"
+                  onmouseout="this.style.borderColor='#ced4da'; this.style.transform='scale(1)'">
+              🏬
+            </span>
+            <span style="width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #ced4da; transition: all 0.3s ease; font-size: 30px;" 
+                  class="ejemplo-emoji" 
+                  data-emoji="🏨"
+                  title="Hotel"
+                  onmouseover="this.style.borderColor='#007bff'; this.style.transform='scale(1.1)'"
+                  onmouseout="this.style.borderColor='#ced4da'; this.style.transform='scale(1)'">
+              🏨
+            </span>
           </div>
         </div>
       </div>
       
-      <!-- Vista previa -->
+      <!-- Vista previa del mensaje completo (se actualiza automáticamente) -->
       <div style="margin-top: 20px; padding: 15px; background: #f0f8ff; border-radius: 8px; border-left: 4px solid #007bff;">
         <p style="margin: 0 0 10px 0; font-weight: 600; color: #007bff;">
           <i class="fas fa-eye"></i> Vista previa del mensaje:
         </p>
-        <div id="vista-previa-empresa" style="background: white; padding: 10px; border-radius: 5px; font-size: 0.85em; color: #666; line-height: 1.4; white-space: pre-wrap; font-family: monospace; max-height: 150px; overflow-y: auto;">
-          *${logoImagenBase64 ? '[LOGO]' : logoEmpresaActual} ${nombreEmpresaActual} - NOTIFICACIÓN*
+        <div id="vista-previa-empresa" style="background: white; padding: 15px; border-radius: 8px; font-size: 0.9em; color: #2c3e50; line-height: 1.5; white-space: pre-wrap; font-family: monospace; border: 1px solid #dee2e6;">
+          *${logoEmpresaActual} ${nombreEmpresaActual} - NOTIFICACIÓN*
 
 *👤 REPARTIDOR:* Ejemplo
 *💰 MONTO PENDIENTE:* S/ 0.00
 *📅 FECHA:* ${new Date().toLocaleDateString('es-PE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
         </div>
+        <p style="margin: 5px 0 0 0; font-size: 0.8em; color: #6c757d; text-align: center;">
+          <i class="fas fa-sync-alt"></i> La vista previa se actualiza automáticamente mientras escribes
+        </p>
       </div>
       
       <div style="background: #fff3cd; padding: 12px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107;">
-        <p style="margin: 0; color: #856404; font-size: 0.85em;">
-          <i class="fas fa-exclamation-triangle"></i> 
-          <strong>Importante:</strong> La imagen se guarda en este navegador. Para usar en otro dispositivo, deberás configurarlo nuevamente.
+        <p style="margin: 0; color: #856404; font-size: 0.9em;">
+          <i class="fas fa-info-circle"></i> 
+          <strong>Nota:</strong> El texto que escribas en "Nombre de la empresa" aparecerá después del emoji seleccionado.
         </p>
       </div>
       
@@ -2742,150 +2798,70 @@ public configurarNombreEmpresa() {
     const btnGuardar = modal.querySelector('#btnGuardarEmpresa');
     const btnCancelar = modal.querySelector('#btnCancelarEmpresa');
     const inputNombre = modal.querySelector('#nombre-empresa') as HTMLInputElement;
-    const inputFile = modal.querySelector('#logo-file') as HTMLInputElement;
     const inputEmoji = modal.querySelector('#logo-emoji') as HTMLInputElement;
-    const btnUsarEmoji = modal.querySelector('#btn-usar-emoji');
-    const btnEliminarLogo = modal.querySelector('#btn-eliminar-logo');
-    const logoPreview = modal.querySelector('#logo-preview') as HTMLDivElement;
+    const logoPreview = modal.querySelector('#logo-emoji-preview') as HTMLSpanElement;
     const logoText = modal.querySelector('#logo-text') as HTMLDivElement;
     const vistaPreviaDiv = modal.querySelector('#vista-previa-empresa') as HTMLDivElement;
-    const ejemplosEmpresa = modal.querySelectorAll('.ejemplo-empresa');
+    const ejemplosEmoji = modal.querySelectorAll('.ejemplo-emoji');
     
     let logoActual = logoEmpresaActual;
-    let logoImagenActual = logoImagenBase64;
     
-    // Función para actualizar vista previa del logo
-    const actualizarLogoPreview = () => {
-      if (logoImagenActual) {
-        logoPreview.innerHTML = `<img src="${logoImagenActual}" alt="Logo empresa" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
-        logoText.textContent = 'Logo cargado';
-      } else {
-        logoPreview.innerHTML = `<span style="font-size: 40px;">${logoActual}</span>`;
-        logoText.textContent = `Emoji: ${logoActual}`;
+    // Función para actualizar vista previa
+    const actualizarVistaPrevia = () => {
+      const nombre = inputNombre.value.trim() || 'Distribuidora de Agua';
+      const emoji = inputEmoji.value.trim() || '🚰';
+      const hoy = new Date();
+      const fechaFormateada = hoy.toLocaleDateString('es-PE', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      
+      // Actualizar previsualización del emoji
+      if (logoPreview) {
+        logoPreview.textContent = emoji;
       }
-      actualizarVistaPrevia();
+      if (logoText) {
+        logoText.textContent = `Emoji actual: ${emoji}`;
+      }
+      
+      // Actualizar vista previa del mensaje completo
+      const vistaPrevia = `*${emoji} ${nombre} - NOTIFICACIÓN*\n\n` +
+                         `*👤 REPARTIDOR:* Ejemplo\n` +
+                         `*💰 MONTO PENDIENTE:* S/ 0.00\n` +
+                         `*📅 FECHA:* ${fechaFormateada}`;
+      
+      vistaPreviaDiv.textContent = vistaPrevia;
     };
     
-    // Función para actualizar vista previa completa
-// En configurarNombreEmpresa(), actualizar la función actualizarVistaPrevia:
-
-const actualizarVistaPrevia = () => {
-  const nombre = inputNombre.value.trim() || 'Distribuidora de Agua';
-  const hoy = new Date();
-  const fechaFormateada = hoy.toLocaleDateString('es-PE', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-  
- // IMPORTANTE: Mostrar [LOGO] cuando hay imagen, pero solo usar emoji para WhatsApp
-const logoParaVista = logoImagenActual ? '[LOGO]' : logoActual;
-  
-  const vistaPrevia = `*${logoParaVista} ${nombre} - NOTIFICACIÓN*\n\n` +
-                     `*👤 REPARTIDOR:* Ejemplo\n` +
-                     `*💰 MONTO PENDIENTE:* S/ 0.00\n` +
-                     `*📅 FECHA:* ${fechaFormateada}`;
-  
-  vistaPreviaDiv.textContent = vistaPrevia;
-};
-    
-    // Evento para subir imagen
-    inputFile.addEventListener('change', (event) => {
-      const file = (event.target as HTMLInputElement).files?.[0];
-      if (file) {
-        // Validar tamaño (500KB máximo)
-        if (file.size > 500 * 1024) {
-          alert('⚠️ La imagen es demasiado grande. Máximo 500KB.');
-          inputFile.value = '';
-          return;
-        }
-        
-        // Validar tipo
-        if (!file.type.match('image.*')) {
-          alert('⚠️ Solo se permiten imágenes.');
-          inputFile.value = '';
-          return;
-        }
-        
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          logoImagenActual = e.target?.result as string;
-          logoActual = ''; // Limpiar emoji cuando se sube imagen
-          inputEmoji.value = '';
-          actualizarLogoPreview();
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-    
-    // Evento para usar emoji
-    if (btnUsarEmoji) {
-      btnUsarEmoji.addEventListener('click', () => {
-        const emoji = inputEmoji.value.trim();
-        if (emoji) {
-          logoActual = emoji;
-          logoImagenActual = null; // Limpiar imagen cuando se usa emoji
-          actualizarLogoPreview();
-        }
-      });
-    }
-    
-    // Evento para eliminar logo
-    if (btnEliminarLogo) {
-      btnEliminarLogo.addEventListener('click', () => {
-        logoImagenActual = null;
-        logoActual = '🚰';
-        inputEmoji.value = '🚰';
-        actualizarLogoPreview();
-      });
-    }
-    
-    // Eventos para ejemplos predefinidos
-    ejemplosEmpresa.forEach(ejemplo => {
+    // Eventos para ejemplos de emojis (solo actualizan el emoji, no el nombre)
+    ejemplosEmoji.forEach(ejemplo => {
       ejemplo.addEventListener('click', () => {
-        const nombre = ejemplo.getAttribute('data-nombre');
         const emoji = ejemplo.getAttribute('data-emoji');
-        
-        if (nombre) inputNombre.value = nombre;
         if (emoji) {
           inputEmoji.value = emoji;
-          logoActual = emoji;
-          logoImagenActual = null;
-          actualizarLogoPreview();
-        } else {
           actualizarVistaPrevia();
         }
       });
     });
     
-    // Actualizar vista previa cuando cambian los inputs
+    // Actualizar vista previa cuando cambian los inputs (en tiempo real)
     inputNombre.addEventListener('input', actualizarVistaPrevia);
-    inputEmoji.addEventListener('input', (e) => {
-      const value = (e.target as HTMLInputElement).value;
-      // Si el usuario escribe un emoji, actualizar automáticamente
-      if (value && !logoImagenActual) {
-        logoActual = value;
-        actualizarLogoPreview();
-      }
-    });
+    inputEmoji.addEventListener('input', actualizarVistaPrevia);
     
     // Inicializar vista previa
-    actualizarLogoPreview();
+    actualizarVistaPrevia();
     
     if (btnGuardar) {
       btnGuardar.addEventListener('click', () => {
         const nuevoNombre = inputNombre.value.trim();
+        const nuevoLogo = inputEmoji.value.trim() || '🚰';
         
         if (nuevoNombre) {
           // Guardar configuración
-          localStorage.setItem('empresa_logo', logoActual);
+          localStorage.setItem('empresa_logo', nuevoLogo);
           localStorage.setItem('empresa_nombre', nuevoNombre);
-          if (logoImagenActual) {
-            localStorage.setItem('empresa_logo_imagen', logoImagenActual);
-          } else {
-            localStorage.removeItem('empresa_logo_imagen');
-          }
           
           // Mostrar confirmación
           const confirmacionHtml = `
@@ -2896,17 +2872,14 @@ const logoParaVista = logoImagenActual ? '[LOGO]' : logoActual;
               <h3 style="color: #28a745; margin-bottom: 10px;">✅ Empresa Configurada</h3>
               
               <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0; text-align: left;">
-                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 10px;">
-                  <div style="width: 50px; height: 50px; border: 1px solid #dee2e6; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: white;">
-                    ${logoImagenActual ? 
-                      `<img src="${logoImagenActual}" alt="Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;">` :
-                      `<span style="font-size: 30px;">${logoActual}</span>`
-                    }
+                <div style="display: flex; align-items: center; gap: 15px;">
+                  <div style="width: 50px; height: 50px; border: 1px solid #dee2e6; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: white; font-size: 30px;">
+                    ${nuevoLogo}
                   </div>
                   <div>
                     <p style="margin: 0; font-weight: 600; font-size: 1.1em;">${nuevoNombre}</p>
                     <p style="margin: 5px 0 0 0; color: #6c757d; font-size: 0.9em;">
-                      ${logoImagenActual ? 'Logo personalizado' : `Logo: ${logoActual}`}
+                      Logo: ${nuevoLogo}
                     </p>
                   </div>
                 </div>
@@ -3557,14 +3530,9 @@ getTotalCanceladasAnteriores(): number {
 public enviarReporteDiario() {
   const totalHoy = this.getTotalIngresos();
   const entregasHoy = this.getCantidadVentasHoy();
-  const canceladasHoy = this.getTotalCanceladasHoy(); // NUEVO: Solo de hoy
-  const canceladasAcumuladas = this.getTotalCanceladas(); // Para debug
+  const canceladasHoy = this.getTotalCanceladasHoy();
   
-  console.log('📊 Debug - Canceladas:', {
-    hoy: canceladasHoy,
-    acumuladas: canceladasAcumuladas,
-    anteriores: canceladasAcumuladas - canceladasHoy
-  });
+  console.log('📊 Debug - Canceladas hoy:', canceladasHoy);
   
   if (totalHoy <= 0 && entregasHoy === 0) {
     alert('💰 No tienes entregas hoy para reportar.');
@@ -3608,7 +3576,12 @@ public enviarReporteDiario() {
     day: 'numeric'
   });
 
-  // IMPORTANTE: Usar canceladasHoy en lugar de canceladas acumuladas
+
+
+
+
+
+
   // Crear mensaje profesional para el reporte diario
   const mensaje = `*${empresaLogo} ${empresaNombre} - REPORTE DIARIO*\n\n` +
                   `*👤 REPARTIDOR:* ${nombreRepartidor}\n` +
@@ -3625,12 +3598,12 @@ public enviarReporteDiario() {
 
   console.log('📤 Mensaje WhatsApp generado:', mensaje);
   
-  // Codificar y abrir WhatsApp
-  const mensajeCodificado = encodeURIComponent(mensaje);
-  const whatsappUrl = `https://wa.me/${NUMERO_ADMINISTRADOR}?text=${mensajeCodificado}`;
-  
-  // Abrir WhatsApp en nueva ventana
-  window.open(whatsappUrl, '_blank');
+
+// *** AGREGAR ESTA LÍNEA PARA DIAGNÓSTICO ***
+this.diagnosticarProblemaEmojis(mensaje);
+
+  // *** AQUÍ ESTÁ EL CAMBIO: Usar el nuevo método con blob ***
+  this.abrirWhatsAppConMensaje(NUMERO_ADMINISTRADOR, mensaje);
   
   // Mostrar confirmación
   setTimeout(() => {
@@ -3642,4 +3615,74 @@ public enviarReporteDiario() {
           `El administrador ha sido notificado sobre tu rendimiento del día.`);
   }, 500);
 }
+private diagnosticarProblemaEmojis(mensaje: string): void {
+    console.log('🔍 DIAGNÓSTICO DE EMOJIS:');
+    
+    // Verificar cada carácter
+    for (let i = 0; i < mensaje.length; i++) {
+        const char = mensaje[i];
+        const codePoint = mensaje.codePointAt(i);
+        const charCode = mensaje.charCodeAt(i);
+        
+        if (codePoint && codePoint > 127) {
+            console.log(`Posición ${i}:`, {
+                caracter: char,
+                codePoint: codePoint?.toString(16),
+                charCode: charCode.toString(16),
+                esEmoji: codePoint > 0xFFFF
+            });
+        }
+    }
+    
+    // Verificar la codificación
+    const codificado = encodeURIComponent(mensaje);
+    console.log('Original:', mensaje);
+    console.log('Codificado:', codificado);
+    console.log('Decodificado:', decodeURIComponent(codificado));
+}
+
+// ========== MÉTODO MEJORADO PARA WHATSAPP CON SOPORTE DE EMOJIS ==========
+
+/**
+ * Abre WhatsApp Web con un mensaje predefinido, manejando correctamente los emojis.
+ * @param numeroTelefono - Número de teléfono en formato internacional (ej. 51939702033)
+ * @param mensaje - El mensaje de texto que incluye emojis.
+ */
+// ========== MÉTODO RECOMENDADO Y PROBADO ==========
+
+// ========== MÉTODO DEFINITIVO PARA WHATSAPP ==========
+
+// ========== MÉTODO ULTRA SIMPLE QUE SÍ FUNCIONA ==========
+
+// ========== VERSIÓN CON INTENT (FALLBACK) ==========
+
+// ========== VERSIÓN FINAL OPTIMIZADA ==========
+
+// ========== VERSIÓN FINAL CON NUEVA PESTAÑA ==========
+
+private abrirWhatsAppConMensaje(numeroTelefono: string, mensaje: string): void {
+    
+    const mensajeLimpio = mensaje.normalize('NFC');
+    const mensajeCodificado = encodeURIComponent(mensajeLimpio);
+    
+    // Usar la URL que ha demostrado funcionar
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${numeroTelefono}&text=${mensajeCodificado}`;
+    
+    console.log('📤 Abriendo WhatsApp en nueva pestaña:', whatsappUrl.substring(0, 150) + '...');
+    
+    // Abrir en NUEVA PESTAÑA para no abandonar la aplicación
+    window.open(whatsappUrl, '_blank');
+}
+
+
+
+
+
+
+
+
+
+
+
+
 }
