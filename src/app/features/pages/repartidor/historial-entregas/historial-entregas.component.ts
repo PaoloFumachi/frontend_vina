@@ -171,8 +171,17 @@ private verificarConsistenciaDatos() {
 public enviarWhatsAppAlAdministrador() {
   const totalPendiente = this.dineroPendienteTotal;
   
-  if (totalPendiente <= 0) {
-    alert('No tienes dinero pendiente para reportar.');
+   if (totalPendiente <= 0) {
+    // ✅ REEMPLAZAR alert() CON MODAL
+    this.dialog.open(ConfirmacionModalComponent, {
+      width: '400px',
+      data: {
+        titulo: 'ℹ️ Información',
+        mensaje: 'No tienes dinero pendiente para reportar.',
+        tipo: 'regularizacion',
+        confirmText: 'Entendido'
+      }
+    });
     return;
   }
 
@@ -371,12 +380,16 @@ public configurarContactoAdministrador() {
           });
           
         } else {
-          alert('⚠️ Número incorrecto.\n\n' +
-                'Formato requerido: 51 + 9 dígitos\n' +
-                'Ejemplo correcto: 51987654321\n\n' +
-                '❌ Incorrecto: +51987654321\n' +
-                '❌ Incorrecto: 519 876 54321\n' +
-                '❌ Incorrecto: 987654321');
+                // ✅ REEMPLAZAR alert() CON MODAL
+          this.dialog.open(ConfirmacionModalComponent, {
+            width: '450px',
+            data: {
+              titulo: '⚠️ Número Incorrecto',
+              mensaje: 'Formato requerido: 51 + 9 dígitos\n\nEjemplo correcto: 51987654321\n\n❌ Incorrecto: +51987654321\n❌ Incorrecto: 519 876 54321',
+              tipo: 'warning',
+              confirmText: 'Entendido'
+            }
+          });
           inputNumero.focus();
           inputNumero.select();
         }
@@ -397,16 +410,25 @@ public configurarContactoAdministrador() {
 
 
   // Método para recargar datos por cambio de día
-  private recargarDatosPorCambioDia() {
-    console.log('🔄 Recargando datos por cambio de día...');
-    this.cargarDatos();
-    this.cargarDineroPendienteTotal();
-    
-    // Mostrar notificación al usuario
-    setTimeout(() => {
-      alert('📅 El sistema ha detectado un cambio de día. Los datos se han actualizado.');
-    }, 500);
-  }
+private recargarDatosPorCambioDia() {
+  console.log('🔄 Recargando datos por cambio de día...');
+  this.cargarDatos();
+  this.cargarDineroPendienteTotal();
+  
+  // Mostrar notificación al usuario
+  setTimeout(() => {
+    // ✅ REEMPLAZAR alert() CON MODAL
+    this.dialog.open(ConfirmacionModalComponent, {
+      width: '450px',
+      data: {
+        titulo: '📅 Cambio de Día',
+        mensaje: 'El sistema ha detectado un cambio de día. Los datos se han actualizado.',
+        tipo: 'regularizacion',
+        confirmText: 'Entendido'
+      }
+    });
+  }, 500);
+}
 
   ngOnDestroy() {
     if (this.dataSubscription) {
@@ -895,26 +917,23 @@ public mostrarModalWhatsAppPersonalizado() {
         this.abrirWhatsAppConMensaje(NUMERO_ADMINISTRADOR, mensaje);
         
     setTimeout(() => {
-      document.body.removeChild(modal);
-      
-      // ✅ USAR MODAL DE ANGULAR MATERIAL
-      this.dialog.open(ConfirmacionModalComponent, {
-        width: '450px',
-        data: {
-          titulo: '📱 Notificación Enviada',
-          mensaje: 'El administrador ha sido notificado sobre tu dinero pendiente.',
-          tipo: 'entrega',
-          detalles: [
-            { label: 'Monto pendiente', valor: `S/ ${totalPendiente.toFixed(2)}`, icono: 'attach_money' },
-            { label: 'Fecha', valor: new Date().toLocaleDateString('es-PE'), icono: 'event' },
-            { label: 'Hora', valor: new Date().toLocaleTimeString('es-PE'), icono: 'schedule' }
-          ],
-          confirmText: 'Aceptar',
-          cancelText: 'Cerrar'
-        }
-      });
-      
-    }, 500);
+  document.body.removeChild(modal);
+  
+  this.dialog.open(ConfirmacionModalComponent, {
+    width: '500px',
+    data: {
+      titulo: '📱 Notificación Enviada',
+      mensaje: 'El administrador ha sido notificado sobre tu dinero pendiente.',
+      tipo: 'entrega',
+      detalles: [
+        { label: 'Monto pendiente', valor: `S/ ${totalPendiente.toFixed(2)}`, icono: 'attach_money' },
+        { label: 'Fecha', valor: new Date().toLocaleDateString('es-PE'), icono: 'event' },
+        { label: 'Hora', valor: new Date().toLocaleTimeString('es-PE'), icono: 'schedule' }
+      ],
+      confirmText: 'Aceptar'
+    }
+  });
+}, 500);
   });
 }
 
@@ -931,8 +950,16 @@ public abrirNotificacionDineroPendiente() {
   const totalPendiente = this.getDineroPendienteSoloAnteriores();
   
   if (totalPendiente <= 0) {
-    alert('✅ No tienes dinero pendiente de días anteriores.\n\n' +
-          'Todo tu dinero acumulado ha sido regularizado o estás al día.');
+    // ✅ REEMPLAZAR alert() CON MODAL
+    this.dialog.open(ConfirmacionModalComponent, {
+      width: '450px',
+      data: {
+        titulo: '✅ Al Día',
+        mensaje: 'No tienes dinero pendiente de días anteriores.\n\nTodo tu dinero acumulado ha sido regularizado o estás al día.',
+        tipo: 'entrega',
+        confirmText: 'Entendido'
+      }
+    });
     return;
   }
   
@@ -943,7 +970,16 @@ public abrirNotificacionDineroPendiente() {
 // En historial-entregas.component.ts - MEJORAR mostrarModalRegularizacion()
 mostrarModalRegularizacion() {
   if (this.ventasPendientesPorDia.length === 0) {
-    alert('No hay entregas pendientes para regularizar.');
+       // ✅ REEMPLAZAR alert() CON MODAL
+    this.dialog.open(ConfirmacionModalComponent, {
+      width: '400px',
+      data: {
+        titulo: 'ℹ️ Información',
+        mensaje: 'No hay entregas pendientes para regularizar.',
+        tipo: 'regularizacion',
+        confirmText: 'Entendido'
+      }
+    });
     return;
   }
 
@@ -1259,7 +1295,6 @@ const actualizarResumenSeleccion = () => {
 
 // Nuevo método para regularizar ventas sin fecha
 regularizarEntregasSinFecha(fecha: string, monto: number, metodo: string = 'efectivo') {
-  // Encontrar IDs de ventas sin fecha
   const ventasSinFechaIds = this.detalleVentasPendientes
     .filter((venta: any) => {
       return !venta.fecha_formateada || 
@@ -1271,14 +1306,42 @@ regularizarEntregasSinFecha(fecha: string, monto: number, metodo: string = 'efec
   this.entregaDineroService.regularizarPendiente(fecha, monto, metodo, ventasSinFechaIds).subscribe({
     next: (response: RegularizarPendienteResponse) => {
       console.log('✅ Ventas sin fecha regularizadas:', response);
-      alert('✅ Ventas sin fecha específica regularizadas exitosamente');
+      
+      // ✅ REEMPLAZAR alert() CON MODAL
+      this.dialog.open(ConfirmacionModalComponent, {
+        width: '500px',
+        data: {
+          titulo: '🔄 Regularización Exitosa',
+          mensaje: 'Ventas sin fecha específica regularizadas exitosamente.',
+          tipo: 'regularizacion',
+          monto: monto,
+          metodo: metodo,
+          fecha: new Date().toLocaleDateString('es-PE'),
+          detalles: [
+            { label: 'Ventas regularizadas', valor: ventasSinFechaIds.length.toString(), icono: 'receipt' },
+            { label: 'Monto', valor: `S/ ${monto.toFixed(2)}`, icono: 'attach_money' }
+          ],
+          confirmText: 'Aceptar'
+        }
+      });
+      
       this.cargarDatos();
       this.cargarDineroPendienteTotal();
       this.mostrarAlertaPendiente = false;
     },
     error: (error: any) => {
       console.error('Error regularizando ventas sin fecha:', error);
-      alert('❌ Error al regularizar ventas sin fecha: ' + (error.error?.error || error.message));
+      
+      // ✅ MODAL DE ERROR
+      this.dialog.open(ConfirmacionModalComponent, {
+        width: '450px',
+        data: {
+          titulo: '❌ Error',
+          mensaje: error.error?.error || 'Error al regularizar ventas sin fecha',
+          tipo: 'warning',
+          confirmText: 'Entendido'
+        }
+      });
     }
   });
 }
@@ -3639,6 +3702,8 @@ getTotalCanceladasAnteriores(): number {
   return this.getTotalCanceladas() - this.getTotalCanceladasHoy();
 }
 
+// src/app/features/pages/repartidor/historial-entregas/historial-entregas.component.ts
+
 public enviarReporteDiario() {
   const totalHoy = this.getTotalIngresos();
   const entregasHoy = this.getCantidadVentasHoy();
@@ -3647,7 +3712,16 @@ public enviarReporteDiario() {
   console.log('📊 Debug - Canceladas hoy:', canceladasHoy);
   
   if (totalHoy <= 0 && entregasHoy === 0) {
-    alert('💰 No tienes entregas hoy para reportar.');
+    // ✅ REEMPLAZAR alert() CON MODAL
+    this.dialog.open(ConfirmacionModalComponent, {
+      width: '400px',
+      data: {
+        titulo: 'ℹ️ Información',
+        mensaje: 'No tienes entregas hoy para reportar.',
+        tipo: 'regularizacion',
+        confirmText: 'Entendido'
+      }
+    });
     return;
   }
 
@@ -3704,21 +3778,27 @@ public enviarReporteDiario() {
 
   console.log('📤 Mensaje WhatsApp generado:', mensaje);
   
+  this.diagnosticarProblemaEmojis(mensaje);
 
-// *** AGREGAR ESTA LÍNEA PARA DIAGNÓSTICO ***
-this.diagnosticarProblemaEmojis(mensaje);
-
-  // *** AQUÍ ESTÁ EL CAMBIO: Usar el nuevo método con blob ***
+  // Abrir WhatsApp
   this.abrirWhatsAppConMensaje(NUMERO_ADMINISTRADOR, mensaje);
   
-  // Mostrar confirmación
+  // ✅ REEMPLAZAR alert() CON MODAL
   setTimeout(() => {
-    alert('✅ Reporte diario enviado por WhatsApp.\n\n' +
-          `Detalles del reporte:\n` +
-          `• Entregas completadas: ${entregasHoy}\n` +
-          `• Dinero recaudado: S/ ${totalHoy.toFixed(2)}\n` +
-          (canceladasHoy > 0 ? `• Entregas canceladas hoy: ${canceladasHoy}\n` : '') +
-          `El administrador ha sido notificado sobre tu rendimiento del día.`);
+    this.dialog.open(ConfirmacionModalComponent, {
+      width: '500px',
+      data: {
+        titulo: '📱 Reporte Enviado',
+        mensaje: 'El administrador ha sido notificado sobre tu rendimiento del día.',
+        tipo: 'entrega',
+        detalles: [
+          { label: 'Entregas completadas', valor: entregasHoy.toString(), icono: 'check_circle' },
+          { label: 'Dinero recaudado', valor: `S/ ${totalHoy.toFixed(2)}`, icono: 'attach_money' },
+          { label: 'Fecha', valor: fechaFormateada, icono: 'event' }
+        ],
+        confirmText: 'Aceptar'
+      }
+    });
   }, 500);
 }
 private diagnosticarProblemaEmojis(mensaje: string): void {
