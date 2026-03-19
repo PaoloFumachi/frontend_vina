@@ -74,20 +74,22 @@ export interface EntregarDineroData {
           </h3>
           
           <div class="metodos-grid">
-            <div *ngFor="let metodo of metodosPago" 
-                 class="metodo-card"
-                 [class.selected]="metodoSeleccionado === metodo.id"
-                 (click)="seleccionarMetodo(metodo.id)">
-              <div class="metodo-icon" [style.background]="metodo.color + '20'" [style.color]="metodo.color">
-                <mat-icon>{{ metodo.icono }}</mat-icon>
-              </div>
-              <div class="metodo-info">
-                <h4>{{ metodo.nombre }}</h4>
-              </div>
-              <div class="metodo-check" *ngIf="metodoSeleccionado === metodo.id">
-                <mat-icon style="color: #28a745;">check_circle</mat-icon>
-              </div>
+            <!-- En entregar-dinero-modal.component.html, modifica el método-card -->
+          <div *ngFor="let metodo of metodosConDescripcion" 
+              class="metodo-card"
+              [class.selected]="metodoSeleccionado === metodo.id"
+              (click)="seleccionarMetodo(metodo.id)">
+            <div class="metodo-icon" [style.background]="metodo.color + '20'" [style.color]="metodo.color">
+              <mat-icon>{{ metodo.icono }}</mat-icon>
             </div>
+            <div class="metodo-info">
+              <h4>{{ metodo.nombre }}</h4>
+              <p class="metodo-descripcion">{{ metodo.descripcion }}</p>
+            </div>
+            <div class="metodo-check" *ngIf="metodoSeleccionado === metodo.id">
+              <mat-icon style="color: #28a745;">check_circle</mat-icon>
+            </div>
+          </div>
           </div>
         </div>
 
@@ -388,6 +390,12 @@ export interface EntregarDineroData {
         grid-template-columns: 1fr;
       }
     }
+        /* AÑADE dentro de los estilos del modal */
+    .metodo-descripcion {
+      margin: 4px 0 0 0;
+      font-size: 0.8rem;
+      color: #6c757d;
+    }
   `]
 })
 export class EntregarDineroModalComponent {
@@ -397,6 +405,41 @@ export class EntregarDineroModalComponent {
     { id: 3, nombre: 'Transferencia', icono: 'account_balance', color: '#6f42c1' },
     { id: 4, nombre: 'Tarjeta', icono: 'credit_card', color: '#fd7e14' }
   ];
+
+
+// En la clase, después de metodosPago
+get metodosConDescripcion() {
+  return [
+    { 
+      id: 1, 
+      nombre: 'Efectivo', 
+      icono: 'paid', 
+      color: '#28a745',
+      descripcion: 'Entrega física de dinero en efectivo'
+    },
+    { 
+      id: 2, 
+      nombre: 'Yape', 
+      icono: 'smartphone', 
+      color: '#007bff',
+      descripcion: 'Transferencia por Yape'
+    },
+    { 
+      id: 3, 
+      nombre: 'Transferencia', 
+      icono: 'account_balance', 
+      color: '#6f42c1',
+      descripcion: 'Transferencia bancaria'
+    },
+    { 
+      id: 4, 
+      nombre: 'Tarjeta', 
+      icono: 'credit_card', 
+      color: '#fd7e14',
+      descripcion: 'Pago con tarjeta de crédito/débito'
+    }
+  ];
+}
 
   metodoSeleccionado: number = 1; // Por defecto, seleccionar Efectivo
 
@@ -420,4 +463,10 @@ export class EntregarDineroModalComponent {
   cancelar(): void {
     this.dialogRef.close({ confirmado: false });
   }
+
+
+
+
+
+
 }

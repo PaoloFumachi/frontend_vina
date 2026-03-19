@@ -541,6 +541,8 @@ cargarDineroPendienteTotal() {
 // Método para regularizar entregas pendientes
 // REEMPLAZA el método regularizarEntregasPendientes con esta versión corregida:
 
+// src/app/features/pages/repartidor/historial-entregas/historial-entregas.component.ts
+
 regularizarEntregasPendientes(fecha: string, monto: number, metodo: string = 'efectivo') {
   console.log(`🔄 Regularizando fecha: ${fecha}, Monto: ${monto}, Método: ${metodo}`);
   
@@ -548,13 +550,9 @@ regularizarEntregasPendientes(fecha: string, monto: number, metodo: string = 'ef
   const [day, month, year] = fecha.split('/');
   const fechaISO = `${year}-${month}-${day}`;
   
-  // DEBUG: Ver qué ventas tenemos
-  console.log('📋 Detalle de ventas pendientes:', this.detalleVentasPendientes);
-  
-  // Filtrar ventas por fecha CORRECTAMENTE
+  // Filtrar ventas por fecha
   const ventasIds = this.detalleVentasPendientes
     .filter((venta: any) => {
-      // Usar fecha_venta o fecha_original (lo que tengas disponible)
       const ventaFecha = venta.fecha_venta || venta.fecha_original || venta.fecha;
       
       if (!ventaFecha) {
@@ -562,20 +560,15 @@ regularizarEntregasPendientes(fecha: string, monto: number, metodo: string = 'ef
         return false;
       }
       
-      // Convertir a formato yyyy-mm-dd para comparar
       let ventaFechaISO;
       if (ventaFecha.includes('/')) {
-        // Formato dd/mm/yyyy
         const [vDay, vMonth, vYear] = ventaFecha.split('/');
         ventaFechaISO = `${vYear}-${vMonth}-${vDay}`;
       } else {
-        // Ya está en formato yyyy-mm-dd o similar
         ventaFechaISO = ventaFecha.split('T')[0];
       }
       
-      const coincide = ventaFechaISO === fechaISO;
-      console.log(`  Venta ${venta.id_venta}: Fecha ${ventaFechaISO} vs ${fechaISO} -> ${coincide ? 'COINCIDE' : 'NO coincide'}`);
-      return coincide;
+      return ventaFechaISO === fechaISO;
     })
     .map((venta: any) => venta.id_venta);
   
@@ -584,16 +577,61 @@ regularizarEntregasPendientes(fecha: string, monto: number, metodo: string = 'ef
   this.entregaDineroService.regularizarPendiente(fechaISO, monto, metodo, ventasIds).subscribe({
     next: (response: RegularizarPendienteResponse) => {
       console.log('✅ Entrega regularizada:', response);
-      alert('✅ Entregas pendientes regularizadas exitosamente');
-      this.cargarDatos();
-      this.cargarDineroPendienteTotal();
-      this.mostrarAlertaPendiente = false;
+      
+      // ✅ MODAL DE ÉXITO
+      this.dialog.open(ConfirmacionModalComponent, {
+        width: '500px',
+        data: {
+          titulo: '🔄 Regularización Exitosa',
+          mensaje: 'Las entregas pendientes han sido regularizadas correctamente.',
+          tipo: 'regularizacion',
+          monto: monto,
+          metodo: metodo,
+          fecha: fecha,
+          detalles: [
+            { label: 'Fecha regularizada', valor: fecha, icono: 'event' },
+            { label: 'Monto', valor: `S/ ${monto.toFixed(2)}`, icono: 'attach_money' },
+            { label: 'Método', valor: this.formatearMetodo(metodo), icono: 'payment' },
+            { label: 'Ventas regularizadas', valor: ventasIds.length.toString(), icono: 'receipt' }
+          ],
+          total: `Total regularizado: S/ ${monto.toFixed(2)}`,
+          confirmText: 'Aceptar'
+        }
+      }).afterClosed().subscribe(() => {
+        this.cargarDatos();
+        this.cargarDineroPendienteTotal();
+        this.mostrarAlertaPendiente = false;
+      });
     },
     error: (error: any) => {
       console.error('Error regularizando entregas:', error);
-      alert('❌ Error al regularizar entregas: ' + (error.error?.error || error.message));
+      
+      // ✅ MODAL DE ERROR
+      this.dialog.open(ConfirmacionModalComponent, {
+        width: '450px',
+        data: {
+          titulo: '❌ Error',
+          mensaje: error.error?.error || 'Error al regularizar las entregas',
+          tipo: 'warning',
+          confirmText: 'Entendido'
+        }
+      });
     }
   });
+}
+
+
+/**
+ * Formatea el nombre del método de pago para mostrarlo correctamente
+ */
+private formatearMetodo(metodo: string): string {
+  const metodos: {[key: string]: string} = {
+    'efectivo': 'Efectivo',
+    'transferencia': 'Transferencia',
+    'yape': 'Yape',
+    'tarjeta': 'Tarjeta'
+  };
+  return metodos[metodo] || metodo;
 }
 
 
@@ -856,14 +894,29 @@ public mostrarModalWhatsAppPersonalizado() {
         // *** AQUÍ ESTÁ EL CAMBIO: Usar el nuevo método con blob ***
         this.abrirWhatsAppConMensaje(NUMERO_ADMINISTRADOR, mensaje);
         
-        // Cerrar modal y mostrar confirmación
-        setTimeout(() => {
-          document.body.removeChild(modal);
-          alert('✅ Mensaje preparado para enviar por WhatsApp.\n\n' +
-                'El administrador ha sido notificado sobre tu dinero pendiente.');
-        }, 500);
+    setTimeout(() => {
+      document.body.removeChild(modal);
+      
+      // ✅ USAR MODAL DE ANGULAR MATERIAL
+      this.dialog.open(ConfirmacionModalComponent, {
+        width: '450px',
+        data: {
+          titulo: '📱 Notificación Enviada',
+          mensaje: 'El administrador ha sido notificado sobre tu dinero pendiente.',
+          tipo: 'entrega',
+          detalles: [
+            { label: 'Monto pendiente', valor: `S/ ${totalPendiente.toFixed(2)}`, icono: 'attach_money' },
+            { label: 'Fecha', valor: new Date().toLocaleDateString('es-PE'), icono: 'event' },
+            { label: 'Hora', valor: new Date().toLocaleTimeString('es-PE'), icono: 'schedule' }
+          ],
+          confirmText: 'Aceptar',
+          cancelText: 'Cerrar'
+        }
       });
-    }
+      
+    }, 500);
+  });
+}
 
     if (btnCancelar) {
       btnCancelar.addEventListener('click', () => {
@@ -2065,23 +2118,55 @@ private obtenerIdsVentasAnteriores(): number[] {
     }
   }
 
-  private registrarEntregaSegura(total: number) {
-    this.loading = true;
-    
-    this.entregaDineroService.registrarEntrega(total, 'efectivo').subscribe({
-      next: (response) => {
-        console.log('✅ Entrega registrada:', response);
-        alert('✅ Entrega de dinero registrada exitosamente');
+
+
+private registrarEntregaSegura(total: number) {
+  this.loading = true;
+  
+  this.entregaDineroService.registrarEntrega(total, 'efectivo').subscribe({
+    next: (response) => {
+      console.log('✅ Entrega registrada:', response);
+      
+      // ✅ MODAL DE ÉXITO
+      this.dialog.open(ConfirmacionModalComponent, {
+        width: '500px',
+        data: {
+          titulo: '✅ Entrega Registrada',
+          mensaje: 'El dinero ha sido registrado exitosamente en el sistema.',
+          tipo: 'entrega',
+          monto: total,
+          metodo: 'efectivo',
+          fecha: new Date().toLocaleDateString('es-PE'),
+          detalles: [
+            { label: 'Monto', valor: `S/ ${total.toFixed(2)}`, icono: 'attach_money' },
+            { label: 'Método', valor: 'Efectivo', icono: 'paid' },
+            { label: 'Fecha', valor: new Date().toLocaleDateString('es-PE'), icono: 'event' },
+            { label: 'Hora', valor: new Date().toLocaleTimeString('es-PE'), icono: 'schedule' }
+          ],
+          confirmText: 'Aceptar'
+        }
+      }).afterClosed().subscribe(() => {
         this.recargarDatosCompletamente();
         this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error registrando entrega:', error);
-        alert('❌ Error al registrar entrega: ' + (error.error?.error || error.message));
-        this.loading = false;
-      }
-    });
-  }
+      });
+    },
+    error: (error) => {
+      console.error('Error registrando entrega:', error);
+      
+      // ✅ MODAL DE ERROR
+      this.dialog.open(ConfirmacionModalComponent, {
+        width: '450px',
+        data: {
+          titulo: '❌ Error',
+          mensaje: error.error?.error || 'Error al registrar la entrega',
+          tipo: 'warning',
+          confirmText: 'Entendido'
+        }
+      });
+      this.loading = false;
+    }
+  });
+}
 
   private recargarDatosCompletamente() {
     this.cargarDatos();
@@ -2596,6 +2681,8 @@ public registrarEntregaDineroHoy() {
 /**
  * Procesar la entrega de dinero con el método seleccionado
  */
+
+// Reemplaza el método procesarEntregaDinero completo
 private procesarEntregaDinero(total: number, metodoId: number, metodoNombre: string): void {
   this.loading = true;
   
@@ -2613,20 +2700,45 @@ private procesarEntregaDinero(total: number, metodoId: number, metodoNombre: str
     next: (response) => {
       console.log('✅ Entrega de HOY registrada:', response);
       
-      // Mostrar mensaje de éxito con el método seleccionado
-      const mensajeExito = `✅ Entrega de dinero registrada exitosamente\n\n` +
-                          `💰 Monto: S/ ${total.toFixed(2)}\n` +
-                          `💳 Método: ${metodoNombre}\n` +
-                          `📅 Fecha: ${new Date().toLocaleDateString('es-PE')}\n` +
-                          `🕒 Hora: ${new Date().toLocaleTimeString('es-PE')}`;
-      
-      alert(mensajeExito);
-      this.recargarDatosCompletamente();
-      this.loading = false;
+      // ✅ USAR MODAL DE ANGULAR MATERIAL EN LUGAR DE alert()
+      this.dialog.open(ConfirmacionModalComponent, {
+        width: '500px',
+        maxWidth: '95vw',
+        data: {
+          titulo: '✅ Entrega Registrada',
+          mensaje: 'El dinero ha sido registrado exitosamente en el sistema.',
+          tipo: 'entrega',
+          fecha: new Date().toLocaleDateString('es-PE'),
+          monto: total,
+          metodo: metodoBackend,
+          total: `Total entregado: S/ ${total.toFixed(2)}`,
+          detalles: [
+            { label: 'Monto entregado', valor: `S/ ${total.toFixed(2)}`, icono: 'attach_money' },
+            { label: 'Método de pago', valor: metodoNombre, icono: 'payment' },
+            { label: 'Fecha', valor: new Date().toLocaleDateString('es-PE'), icono: 'event' },
+            { label: 'Hora', valor: new Date().toLocaleTimeString('es-PE'), icono: 'schedule' }
+          ],
+          confirmText: 'Aceptar',
+          cancelText: 'Cerrar'
+        }
+      }).afterClosed().subscribe(() => {
+        this.recargarDatosCompletamente();
+        this.loading = false;
+      });
     },
     error: (error) => {
       console.error('Error registrando entrega de hoy:', error);
-      alert('❌ Error al registrar entrega: ' + (error.error?.error || error.message));
+      
+      // ✅ MODAL DE ERROR
+      this.dialog.open(ConfirmacionModalComponent, {
+        width: '450px',
+        data: {
+          titulo: '❌ Error',
+          mensaje: error.error?.error || 'No se pudo registrar la entrega',
+          tipo: 'warning',
+          confirmText: 'Entendido'
+        }
+      });
       this.loading = false;
     }
   });
@@ -3576,12 +3688,6 @@ public enviarReporteDiario() {
     day: 'numeric'
   });
 
-
-
-
-
-
-
   // Crear mensaje profesional para el reporte diario
   const mensaje = `*${empresaLogo} ${empresaNombre} - REPORTE DIARIO*\n\n` +
                   `*👤 REPARTIDOR:* ${nombreRepartidor}\n` +
@@ -3673,16 +3779,4 @@ private abrirWhatsAppConMensaje(numeroTelefono: string, mensaje: string): void {
     // Abrir en NUEVA PESTAÑA para no abandonar la aplicación
     window.open(whatsappUrl, '_blank');
 }
-
-
-
-
-
-
-
-
-
-
-
-
 }
