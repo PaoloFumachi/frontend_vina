@@ -107,6 +107,10 @@
             <label><i class="fas fa-credit-card"></i> Método Pago</label>
             <span class="info-valor">{{ venta.metodo_pago }}</span>
           </div>
+          <div class="info-item-compacto">
+            <label><i class="fas fa-clock"></i> Tiempo total</label>
+            <span class="info-valor">{{ calcularTiempoTotalEntrega() }}</span>
+          </div>
           <div *ngIf="venta.tipo_comprobante_solicitado" class="info-item-compacto">
             <label><i class="fas fa-receipt"></i> Tipo Comprobante</label>
             <span class="info-valor">{{ venta.tipo_comprobante_solicitado === 'SIN_COMPROBANTE' ? 'Nota de Venta' : venta.tipo_comprobante_solicitado }}</span>
@@ -173,8 +177,6 @@
       <div class="completada-details">
         <p><i class="fas fa-calendar"></i> <strong>Finalización:</strong> {{ formatearFechaHora(venta.fecha_fin_ruta) }}</p>
         <p><i class="fas fa-clock"></i> <strong>Tiempo total:</strong> {{ calcularTiempoTotalEntrega() }}</p>
-        <p><i class="fas fa-money-bill-wave"></i> <strong>Monto:</strong> S/ {{ venta.total | number:'1.2-2' }}</p>
-        <p><i class="fas fa-credit-card"></i> <strong>Método:</strong> {{ venta.metodo_pago }}</p>
       </div>
       <div class="acciones-container">
         <button class="btn-action btn-info" (click)="abrirMapa()">
