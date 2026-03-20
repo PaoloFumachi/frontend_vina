@@ -182,26 +182,6 @@ export class DetalleVentaRepartidorComponent implements OnInit {
     return !!this.venta?.fecha_fin_ruta;
   }
 
-  calcularTiempoTranscurrido(): string {
-    if (!this.venta?.fecha_inicio_ruta) return '';
-    
-    try {
-      const inicio = new Date(this.venta.fecha_inicio_ruta);
-      const ahora = new Date();
-      const diffMs = ahora.getTime() - inicio.getTime();
-      
-      const horas = Math.floor(diffMs / (1000 * 60 * 60));
-      const minutos = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-      
-      if (horas > 0) {
-        return `${horas}h ${minutos}m`;
-      } else {
-        return `${minutos} minutos`;
-      }
-    } catch (error) {
-      return '';
-    }
-  }
 
   calcularTiempoTotalEntrega(): string {
     if (!this.venta?.fecha_inicio_ruta || !this.venta?.fecha_fin_ruta) return '';

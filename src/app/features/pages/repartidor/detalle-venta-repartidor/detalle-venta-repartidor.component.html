@@ -111,10 +111,6 @@
             <label><i class="fas fa-receipt"></i> Tipo Comprobante</label>
             <span class="info-valor">{{ venta.tipo_comprobante_solicitado === 'SIN_COMPROBANTE' ? 'Nota de Venta' : venta.tipo_comprobante_solicitado }}</span>
           </div>
-          <div *ngIf="isRutaIniciada()" class="info-item-compacto">
-            <label><i class="fas fa-clock"></i> Tiempo Transcurrido</label>
-            <span class="tiempo-destacado">{{ calcularTiempoTranscurrido() }}</span>
-          </div>
         </div>
       </div>
 
@@ -163,27 +159,6 @@
                 En progreso
               </span>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- FILA 3: Información Adicional -->
-    <div class="fila-secundaria" *ngIf="venta.fecha_creacion || isRutaFinalizada() || venta.ubicacion_inicio_ruta">
-      <div class="seccion info-adicional-compacto full-width">
-        <h2><i class="fas fa-clipboard-list"></i> Información Adicional</h2>
-        <div class="info-grid-compacto">
-          <div class="info-item-compacto">
-            <label><i class="fas fa-calendar-plus"></i> Fecha Creación</label>
-            <span class="info-valor">{{ formatearFechaCompleta(venta.fecha_creacion) }}</span>
-          </div>
-          <div class="info-item-compacto" *ngIf="isRutaFinalizada()">
-            <label><i class="fas fa-clock"></i> Tiempo Total</label>
-            <span class="info-valor">{{ calcularTiempoTotalEntrega() }}</span>
-          </div>
-          <div class="info-item-compacto" *ngIf="venta.ubicacion_inicio_ruta">
-            <label><i class="fas fa-map-pin"></i> Ubicación Inicio</label>
-            <span class="info-valor">{{ venta.ubicacion_inicio_ruta }}</span>
           </div>
         </div>
       </div>
