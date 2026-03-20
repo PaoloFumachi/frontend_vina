@@ -969,3 +969,73 @@
     font-size: 0.9rem;
   }
 }
+/* detalle-venta-repartidor.component.css - AÑADE al final */
+
+/* === MEJORAS PARA TIEMPO TOTAL === */
+.tiempo-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tiempo-cero {
+  color: #6c757d;
+  font-style: italic;
+}
+
+.tiempo-cancelado-sin-ruta {
+  color: #856404;
+  font-weight: normal;
+}
+
+.tiempo-nota {
+  font-size: 0.7rem;
+  color: #6c757d;
+  font-weight: normal;
+}
+
+.estado-descripcion {
+  display: block;
+  font-size: 0.7rem;
+  margin-top: 4px;
+  font-weight: normal;
+  color: #6c757d;
+}
+
+/* Para estado Cancelado en el timeline */
+.timeline-item.cancelado {
+  background: #f8d7da;
+  border-left: 4px solid #dc3545;
+}
+
+.timeline-item.cancelado .timeline-marker {
+  background: #dc3545;
+  border-color: #dc3545;
+  color: white;
+}
+
+.timeline-item.cancelado .timeline-date {
+  color: #721c24;
+}
+
+/* Badge para cancelado con indicador de ruta */
+.badge-cancelado-con-ruta {
+  background: #dc3545;
+  color: white;
+  position: relative;
+}
+
+.badge-cancelado-con-ruta::after {
+  content: " 🚚";
+  font-size: 0.7rem;
+}
+
+.badge-cancelado-sin-ruta {
+  background: #6c757d;
+  color: white;
+}
+
+.badge-cancelado-sin-ruta::after {
+  content: " ⏱️";
+  font-size: 0.7rem;
+}

@@ -6,7 +6,7 @@ import { RepartidorVentaService } from '../../../../core/services/repartidor-ven
 import { RepartidorVenta, VentaDetalle } from '../../../../core/models/repartidor-venta.model';
 import { AuthService } from '../../../../core/services/auth.service';
 import { PersonalizacionService } from '../../../../core/services/personalizacion.service'; // ✅ IMPORTAR
-import { filter } from 'rxjs/operators';
+
 
 @Component({
   selector: 'app-detalle-venta-repartidor',
@@ -182,27 +182,107 @@ export class DetalleVentaRepartidorComponent implements OnInit {
     return !!this.venta?.fecha_fin_ruta;
   }
 
+  // ========== MÉTODOS DE CÁLCULO DE TIEMPO ==========
 
-  calcularTiempoTotalEntrega(): string {
-    if (!this.venta?.fecha_inicio_ruta || !this.venta?.fecha_fin_ruta) return '';
+  /**
+   * Calcula el tiempo transcurrido desde el inicio de la ruta hasta ahora
+   * (Para entregas en curso)
+   */
+  calcularTiempoEnCurso(): string {
+    if (!this.venta?.fecha_inicio_ruta) return '';
     
     try {
       const inicio = new Date(this.venta.fecha_inicio_ruta);
-      const fin = new Date(this.venta.fecha_fin_ruta);
-      const diffMs = fin.getTime() - inicio.getTime();
+      const ahora = new Date();
+      const diffMs = ahora.getTime() - inicio.getTime();
+      
+      if (diffMs < 0) return '';
       
       const horas = Math.floor(diffMs / (1000 * 60 * 60));
       const minutos = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
       
       if (horas > 0) {
         return `${horas}h ${minutos}m`;
-      } else {
+      } else if (minutos > 0) {
         return `${minutos} minutos`;
+      } else {
+        const segundos = Math.floor(diffMs / 1000);
+        return `${segundos} segundos`;
       }
     } catch (error) {
       return '';
     }
   }
+
+
+calcularTiempoTotalEntrega(): string {
+    // Si no hay fecha de inicio, no se puede calcular tiempo
+    if (!this.venta?.fecha_inicio_ruta) return '';
+    
+    try {
+        const inicio = new Date(this.venta.fecha_inicio_ruta);
+        let fin: Date;
+        
+        // Si hay fecha de fin (entregado completado o cancelado con ruta iniciada)
+        if (this.venta.fecha_fin_ruta) {
+            fin = new Date(this.venta.fecha_fin_ruta);
+        } else {
+            // Si está en curso, usar hora actual
+            fin = new Date();
+        }
+        
+        const diffMs = fin.getTime() - inicio.getTime();
+        
+        // Validar que la diferencia sea positiva
+        if (diffMs < 0) return '';
+        
+        const horas = Math.floor(diffMs / (1000 * 60 * 60));
+        const minutos = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        
+        if (horas > 0) {
+            return `${horas}h ${minutos}m`;
+        } else if (minutos > 0) {
+            return `${minutos} minutos`;
+        } else {
+            const segundos = Math.floor(diffMs / 1000);
+            return `${segundos} segundos`;
+        }
+    } catch (error) {
+        console.error('Error calculando tiempo total:', error);
+        return '';
+    }
+}
+
+// ✅ NUEVO: Método para obtener el estado de la entrega con descripción
+getEstadoDescripcion(): string {
+    if (!this.venta) return '';
+    
+    switch (this.venta.estado) {
+        case 'Pagado':
+            return '✅ Entregado y pagado correctamente';
+        case 'Cancelado':
+            if (this.venta.fecha_inicio_ruta) {
+                return `❌ Cancelado después de ${this.calcularTiempoTotalEntrega()} de ruta`;
+            }
+            return '❌ Cancelado antes de iniciar la ruta';
+        case 'En ruta':
+            return `🚚 En ruta por ${this.calcularTiempoEnCurso()}`;
+        default:
+            return this.venta.estado || 'Estado desconocido';
+    }
+}
+
+
+//Método para mostrar si la ruta fue iniciada o no
+getRutaStatus(): string {
+    if (!this.venta) return '';
+    
+    if (this.venta.fecha_inicio_ruta) {
+        return 'Ruta iniciada';
+    } else {
+        return 'Ruta no iniciada';
+    }
+}
 
   getEstadoBadgeClass(estado: string): string {
     const estadoClass: { [key: string]: string } = {
