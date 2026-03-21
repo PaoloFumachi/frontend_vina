@@ -2708,24 +2708,44 @@ mostrarModalHistorialMejorado() {
 /**
  * Método simplificado para entregar solo dinero de hoy
  */
+// src/app/features/pages/repartidor/historial-entregas/historial-entregas.component.ts
+
 public registrarEntregaDineroHoy() {
   const totalHoy = this.getTotalIngresos();
   
   if (totalHoy <= 0) {
-    alert('💰 No tienes dinero pendiente de entrega del día de hoy.');
+    this.dialog.open(ConfirmacionModalComponent, {
+      width: 'min(400px, 90vw)',
+      data: {
+        titulo: 'ℹ️ Información',
+        mensaje: 'No tienes dinero pendiente de entrega del día de hoy.',
+        tipo: 'regularizacion',
+        confirmText: 'Entendido'
+      }
+    });
     return;
   }
 
   this.verificarEntregaReciente().then((tieneEntregaReciente) => {
     if (tieneEntregaReciente) {
-      alert('⚠️ Ya tienes una entrega registrada recientemente. Espera unos minutos antes de registrar otra.');
+      this.dialog.open(ConfirmacionModalComponent, {
+        width: 'min(450px, 90vw)',
+        data: {
+          titulo: '⚠️ Atención',
+          mensaje: 'Ya tienes una entrega registrada recientemente. Espera unos minutos antes de registrar otra.',
+          tipo: 'warning',
+          confirmText: 'Entendido'
+        }
+      });
       return;
     }
 
     // Abrir modal para seleccionar método de pago
     const dialogRef = this.dialog.open(EntregarDineroModalComponent, {
-      width: '600px',
+      width: 'min(600px, 95vw)',
       maxWidth: '95vw',
+      maxHeight: '85vh',
+      panelClass: 'responsive-dialog',
       data: {
         total: totalHoy,
         fecha: new Date().toLocaleDateString('es-PE'),
@@ -2746,10 +2766,12 @@ public registrarEntregaDineroHoy() {
  */
 
 // Reemplaza el método procesarEntregaDinero completo
+// src/app/features/pages/repartidor/historial-entregas/historial-entregas.component.ts
+
+// Modifica el método procesarEntregaDinero
 private procesarEntregaDinero(total: number, metodoId: number, metodoNombre: string): void {
   this.loading = true;
   
-  // Convertir ID a nombre para el backend
   let metodoBackend = 'efectivo';
   switch (metodoId) {
     case 1: metodoBackend = 'efectivo'; break;
@@ -2763,10 +2785,12 @@ private procesarEntregaDinero(total: number, metodoId: number, metodoNombre: str
     next: (response) => {
       console.log('✅ Entrega de HOY registrada:', response);
       
-      // ✅ USAR MODAL DE ANGULAR MATERIAL EN LUGAR DE alert()
+      // ✅ MODAL CON DIMENSIONES RESPONSIVAS
       this.dialog.open(ConfirmacionModalComponent, {
-        width: '500px',
+        width: 'min(500px, 90vw)',
         maxWidth: '95vw',
+        maxHeight: '85vh',
+        panelClass: 'responsive-dialog',
         data: {
           titulo: '✅ Entrega Registrada',
           mensaje: 'El dinero ha sido registrado exitosamente en el sistema.',
@@ -2792,9 +2816,9 @@ private procesarEntregaDinero(total: number, metodoId: number, metodoNombre: str
     error: (error) => {
       console.error('Error registrando entrega de hoy:', error);
       
-      // ✅ MODAL DE ERROR
       this.dialog.open(ConfirmacionModalComponent, {
-        width: '450px',
+        width: 'min(450px, 90vw)',
+        maxWidth: '95vw',
         data: {
           titulo: '❌ Error',
           mensaje: error.error?.error || 'No se pudo registrar la entrega',

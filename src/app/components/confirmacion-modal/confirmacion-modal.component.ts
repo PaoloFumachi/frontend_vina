@@ -112,8 +112,12 @@ export interface ConfirmacionData {
   styles: [`
     .confirmacion-modal {
       font-family: 'Montserrat', sans-serif;
-      min-width: 400px;
-      max-width: 500px;
+      max-width: 550px;
+      width: 100%;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
 
     /* Header */
@@ -124,6 +128,7 @@ export interface ConfirmacionData {
       padding: 20px 24px;
       border-radius: 12px 12px 0 0;
       background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      flex-shrink: 0;
     }
 
     .modal-header.regularizacion {
@@ -150,6 +155,7 @@ export interface ConfirmacionData {
       align-items: center;
       justify-content: center;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      flex-shrink: 0;
     }
 
     .header-icon mat-icon {
@@ -172,18 +178,22 @@ export interface ConfirmacionData {
 
     .header-title {
       margin: 0;
-      font-size: 1.5rem;
+      font-size: clamp(1rem, 4vw, 1.5rem);
       font-weight: 600;
       color: #495057;
+      line-height: 1.2;
     }
 
-    /* Cuerpo */
+    /* Cuerpo - SCROLLABLE */
     .modal-body {
       padding: 24px;
+      flex: 1;
+      overflow-y: auto;
+      max-height: calc(85vh - 140px);
     }
 
     .mensaje-principal {
-      font-size: 1rem;
+      font-size: clamp(0.9rem, 3vw, 1rem);
       color: #6c757d;
       margin: 0 0 20px 0;
       line-height: 1.5;
@@ -210,9 +220,6 @@ export interface ConfirmacionData {
 
     .resumen-header mat-icon {
       color: #007bff;
-      font-size: 20px;
-      width: 20px;
-      height: 20px;
     }
 
     .resumen-contenido {
@@ -227,6 +234,8 @@ export interface ConfirmacionData {
       align-items: center;
       padding: 8px 0;
       border-bottom: 1px dashed #dee2e6;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
     .detalle-item:last-child {
@@ -238,24 +247,24 @@ export interface ConfirmacionData {
       align-items: center;
       gap: 6px;
       color: #6c757d;
-      font-size: 0.9rem;
+      font-size: clamp(0.8rem, 3vw, 0.95rem);
     }
 
     .detalle-label mat-icon {
       font-size: 18px;
       width: 18px;
       height: 18px;
-      color: #6c757d;
     }
 
     .detalle-valor {
       font-weight: 600;
       color: #495057;
+      font-size: clamp(0.9rem, 3vw, 1rem);
     }
 
     .detalle-valor.monto {
       color: #28a745;
-      font-size: 1.1rem;
+      font-size: clamp(1rem, 4vw, 1.1rem);
     }
 
     .detalle-valor.metodo {
@@ -288,7 +297,7 @@ export interface ConfirmacionData {
       border-top: 2px solid #dee2e6;
       text-align: right;
       font-weight: 700;
-      font-size: 1.2rem;
+      font-size: clamp(1rem, 4vw, 1.2rem);
       color: #28a745;
     }
 
@@ -301,6 +310,7 @@ export interface ConfirmacionData {
       background: #e7f3ff;
       border-radius: 8px;
       border-left: 4px solid #007bff;
+      margin-top: 20px;
     }
 
     .nota-info mat-icon {
@@ -313,7 +323,7 @@ export interface ConfirmacionData {
 
     .nota-info span {
       color: #004085;
-      font-size: 0.9rem;
+      font-size: clamp(0.8rem, 2.5vw, 0.9rem);
       line-height: 1.4;
     }
 
@@ -324,6 +334,7 @@ export interface ConfirmacionData {
       padding: 20px 24px;
       border-top: 1px solid #dee2e6;
       background: #f8f9fa;
+      flex-shrink: 0;
     }
 
     .btn-cancelar, .btn-confirmar {
@@ -336,7 +347,7 @@ export interface ConfirmacionData {
       border: none;
       border-radius: 8px;
       font-weight: 600;
-      font-size: 1rem;
+      font-size: clamp(0.85rem, 3vw, 1rem);
       cursor: pointer;
       transition: all 0.3s ease;
     }
@@ -384,13 +395,48 @@ export interface ConfirmacionData {
       background: #218838;
     }
 
-    @media (max-width: 480px) {
-      .confirmacion-modal {
-        min-width: 90vw;
+    /* Responsive */
+    @media (max-width: 768px) {
+      .modal-header {
+        padding: 16px 20px;
+      }
+      
+      .modal-body {
+        padding: 20px;
       }
       
       .modal-actions {
+        padding: 16px 20px;
         flex-direction: column;
+        gap: 10px;
+      }
+      
+      .btn-cancelar, .btn-confirmar {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .modal-header {
+        padding: 12px 16px;
+      }
+      
+      .modal-body {
+        padding: 16px;
+      }
+      
+      .resumen-card {
+        padding: 12px;
+      }
+      
+      .detalle-item {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+      }
+      
+      .detalle-label {
+        gap: 4px;
       }
     }
   `]

@@ -118,11 +118,15 @@ export interface EntregarDineroData {
       </div>
     </div>
   `,
-  styles: [`
+ styles: [`
     .entregar-dinero-modal {
       font-family: 'Montserrat', sans-serif;
-      min-width: 500px;
       max-width: 600px;
+      width: 100%;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
 
     /* Header */
@@ -134,6 +138,7 @@ export interface EntregarDineroData {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       border-radius: 12px 12px 0 0;
       color: white;
+      flex-shrink: 0;
     }
 
     .header-icon {
@@ -144,6 +149,7 @@ export interface EntregarDineroData {
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-shrink: 0;
     }
 
     .header-icon mat-icon {
@@ -154,13 +160,17 @@ export interface EntregarDineroData {
 
     .header-title {
       margin: 0;
-      font-size: 1.5rem;
+      font-size: clamp(1rem, 4vw, 1.5rem);
       font-weight: 600;
+      line-height: 1.2;
     }
 
-    /* Cuerpo */
+    /* Cuerpo - SCROLLABLE */
     .modal-body {
       padding: 24px;
+      flex: 1;
+      overflow-y: auto;
+      max-height: calc(85vh - 140px);
     }
 
     /* Tarjeta de resumen */
@@ -198,6 +208,8 @@ export interface EntregarDineroData {
       align-items: center;
       padding: 8px 0;
       border-bottom: 1px dashed #dee2e6;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
     .detalle-item:last-child {
@@ -209,24 +221,24 @@ export interface EntregarDineroData {
       align-items: center;
       gap: 6px;
       color: #6c757d;
-      font-size: 0.95rem;
+      font-size: clamp(0.8rem, 3vw, 0.95rem);
     }
 
     .detalle-label mat-icon {
       font-size: 18px;
       width: 18px;
       height: 18px;
-      color: #6c757d;
     }
 
     .detalle-valor {
       font-weight: 600;
       color: #495057;
+      font-size: clamp(0.9rem, 3vw, 1rem);
     }
 
     .detalle-valor.monto {
       color: #28a745;
-      font-size: 1.2rem;
+      font-size: clamp(1rem, 4vw, 1.2rem);
     }
 
     /* Sección de método de pago */
@@ -238,7 +250,7 @@ export interface EntregarDineroData {
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 1rem;
+      font-size: clamp(0.9rem, 3vw, 1rem);
       color: #495057;
       margin-bottom: 15px;
     }
@@ -249,7 +261,7 @@ export interface EntregarDineroData {
 
     .metodos-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 12px;
     }
 
@@ -263,6 +275,7 @@ export interface EntregarDineroData {
       cursor: pointer;
       transition: all 0.3s ease;
       position: relative;
+      background: white;
     }
 
     .metodo-card:hover {
@@ -283,17 +296,29 @@ export interface EntregarDineroData {
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-shrink: 0;
     }
 
     .metodo-icon mat-icon {
       font-size: 20px;
     }
 
+    .metodo-info {
+      flex: 1;
+    }
+
     .metodo-info h4 {
       margin: 0;
-      font-size: 1rem;
+      font-size: clamp(0.85rem, 3vw, 1rem);
       font-weight: 600;
       color: #495057;
+    }
+
+    .metodo-descripcion {
+      margin: 4px 0 0 0;
+      font-size: clamp(0.7rem, 2.5vw, 0.8rem);
+      color: #6c757d;
+      line-height: 1.3;
     }
 
     .metodo-check {
@@ -327,7 +352,7 @@ export interface EntregarDineroData {
 
     .nota-info span {
       color: #004085;
-      font-size: 0.9rem;
+      font-size: clamp(0.8rem, 2.5vw, 0.9rem);
       line-height: 1.4;
     }
 
@@ -338,6 +363,7 @@ export interface EntregarDineroData {
       padding: 20px 24px;
       border-top: 1px solid #dee2e6;
       background: #f8f9fa;
+      flex-shrink: 0;
     }
 
     .btn-cancelar, .btn-confirmar {
@@ -350,7 +376,7 @@ export interface EntregarDineroData {
       border: none;
       border-radius: 8px;
       font-weight: 600;
-      font-size: 1rem;
+      font-size: clamp(0.85rem, 3vw, 1rem);
       cursor: pointer;
       transition: all 0.3s ease;
     }
@@ -381,20 +407,57 @@ export interface EntregarDineroData {
       cursor: not-allowed;
     }
 
-    @media (max-width: 480px) {
-      .entregar-dinero-modal {
-        min-width: 90vw;
+    /* Responsive */
+    @media (max-width: 768px) {
+      .modal-header {
+        padding: 16px 20px;
+      }
+      
+      .modal-body {
+        padding: 20px;
+      }
+      
+      .modal-actions {
+        padding: 16px 20px;
+        flex-direction: column;
+        gap: 10px;
+      }
+      
+      .btn-cancelar, .btn-confirmar {
+        width: 100%;
       }
       
       .metodos-grid {
         grid-template-columns: 1fr;
       }
+      
+      .metodo-card {
+        padding: 10px;
+      }
     }
-        /* AÑADE dentro de los estilos del modal */
-    .metodo-descripcion {
-      margin: 4px 0 0 0;
-      font-size: 0.8rem;
-      color: #6c757d;
+
+    @media (max-width: 480px) {
+      .modal-header {
+        padding: 12px 16px;
+      }
+      
+      .modal-body {
+        padding: 16px;
+      }
+      
+      .resumen-card {
+        padding: 12px;
+      }
+      
+      .detalle-item {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+      }
+      
+      .detalle-label {
+        gap: 4px;
+      }
     }
   `]
 })
