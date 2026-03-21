@@ -254,12 +254,14 @@
                     <mat-icon>visibility</mat-icon>
                   </button>
                   
-                  <!-- ANULAR MOVIMIENTO (solo si es reciente y admin) -->
-                  <button *ngIf="authService.isAdmin() && puedeAnular(row)" 
+                  <!-- ANULAR MOVIMIENTO (solo si es reciente y admin) 
+                   <button *ngIf="authService.isAdmin() && puedeAnular(row)" 
                           mat-icon-button color="warn" (click)="anularMovimiento(row)" 
                           matTooltip="Anular movimiento" class="btn-cancel">
                     <mat-icon>cancel</mat-icon>
                   </button>
+                  -->
+                  
                 </div>
               </td>
             </ng-container>

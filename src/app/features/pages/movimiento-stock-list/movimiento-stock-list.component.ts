@@ -460,27 +460,21 @@ getCantidadClass(movimiento: MovimientoStock): string {
   }
 }
 
-// En movimiento-stock-list.component.ts
-puedeAnular(movimiento: any): boolean {
-  // 🚫 1. No permitir anular movimientos de anulación
+/**puedeAnular(movimiento: any): boolean {
   if (movimiento.descripcion && movimiento.descripcion.includes('ANULACIÓN del movimiento')) {
     return false;
   }
-  
-  // 🚫 2. Verificar si este movimiento YA FUE ANULADO (usando campo del backend)
   if (movimiento.anulado) {
     return false;
   }
-  
-  // ✅ 3. Verificar límite de 24 horas
   const fechaMov = new Date(movimiento.fecha);
   const ahora = new Date();
   const diffHoras = (ahora.getTime() - fechaMov.getTime()) / (1000 * 60 * 60);
   
   return diffHoras <= 24;
-}
+}**/
 
-anularMovimiento(movimiento: any): void {
+/**anularMovimiento(movimiento: any): void {
   const dialogRef = this.dialog.open(ConfirmDialogComponent, {
     width: '450px',
     data: {
@@ -511,7 +505,8 @@ anularMovimiento(movimiento: any): void {
       });
     }
   });
-}
+}**/
+
 // Agregar el método
 verDetallesMovimiento(movimiento: MovimientoStock): void {
   this.dialog.open(DetalleMovimientoModalComponent, {
