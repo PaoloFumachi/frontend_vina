@@ -49,28 +49,40 @@ export class DetalleVentaRepartidorComponent implements OnInit {
     console.log('🔙 Ruta de origen:', this.previousRoute);
   }
 
-  cargarDetalleVenta() {
+
+cargarDetalleVenta() {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
-      this.error = 'ID de venta no válido';
-      this.loading = false;
-      return;
+        this.error = 'ID de venta no válido';
+        this.loading = false;
+        return;
     }
 
     const ventaId = parseInt(id);
     this.repartidorVentaService.getVentaDetalle(ventaId).subscribe({
-      next: (venta) => {
-        this.venta = venta;
-        this.loading = false;
-        console.log('✅ Detalle de venta cargado:', venta);
-      },
-      error: (error) => {
-        console.error('Error cargando detalle de venta:', error);
-        this.error = 'Error al cargar los detalles de la venta';
-        this.loading = false;
-      }
+        next: (venta) => {
+            this.venta = venta;
+            this.loading = false;
+            
+            // ✅ DEBUG: Verificar los datos de fechas
+            console.log('✅ Detalle de venta cargado:', {
+                id_venta: venta.id_venta,
+                estado: venta.estado,
+                fecha_inicio_ruta: venta.fecha_inicio_ruta,
+                fecha_fin_ruta: venta.fecha_fin_ruta,
+                tipo_datos_inicio: typeof venta.fecha_inicio_ruta,
+                tipo_datos_fin: typeof venta.fecha_fin_ruta,
+                fecha_inicio_ruta_obj: venta.fecha_inicio_ruta ? new Date(venta.fecha_inicio_ruta) : null,
+                fecha_fin_ruta_obj: venta.fecha_fin_ruta ? new Date(venta.fecha_fin_ruta) : null
+            });
+        },
+        error: (error) => {
+            console.error('Error cargando detalle de venta:', error);
+            this.error = 'Error al cargar los detalles de la venta';
+            this.loading = false;
+        }
     });
-  }
+}
 
   irARutasAsignadas() {
     this.router.navigate(['/repartidor/rutas-asignadas']);
@@ -215,6 +227,8 @@ export class DetalleVentaRepartidorComponent implements OnInit {
   }
 
 
+
+
 calcularTiempoTotalEntrega(): string {
     // Si no hay fecha de inicio, no se puede calcular tiempo
     if (!this.venta?.fecha_inicio_ruta) return '';
@@ -223,12 +237,17 @@ calcularTiempoTotalEntrega(): string {
         const inicio = new Date(this.venta.fecha_inicio_ruta);
         let fin: Date;
         
-        // Si hay fecha de fin (entregado completado o cancelado con ruta iniciada)
+        // ✅ CORREGIDO: Si hay fecha de fin (entregado o cancelado con ruta), usar esa fecha
         if (this.venta.fecha_fin_ruta) {
             fin = new Date(this.venta.fecha_fin_ruta);
-        } else {
-            // Si está en curso, usar hora actual
+        } 
+        // Si está en curso (estado "En ruta" sin fecha_fin_ruta), usar hora actual
+        else if (this.venta.estado === 'En ruta') {
             fin = new Date();
+        }
+        // Si está cancelado sin fecha_fin_ruta, no mostrar tiempo
+        else {
+            return '';
         }
         
         const diffMs = fin.getTime() - inicio.getTime();
@@ -252,6 +271,53 @@ calcularTiempoTotalEntrega(): string {
         return '';
     }
 }
+
+
+// src/app/features/pages/repartidor/detalle-venta-repartidor/detalle-venta-repartidor.component.ts
+
+/**
+ * Formatea una fecha para asegurar que se maneje correctamente
+ * @param fechaStr - String de fecha (puede venir en diferentes formatos)
+ */
+private formatearFechaParaCalculo(fechaStr: string | undefined): Date | null {
+    if (!fechaStr) return null;
+    
+    try {
+        // Si ya es un string ISO, convertirlo directamente
+        if (fechaStr.includes('T')) {
+            return new Date(fechaStr);
+        }
+        
+        // Si viene como 'YYYY-MM-DD HH:MM:SS'
+        if (fechaStr.includes(' ')) {
+            return new Date(fechaStr.replace(' ', 'T') + '-05:00');
+        }
+        
+        // Si solo es fecha 'YYYY-MM-DD'
+        return new Date(fechaStr + 'T12:00:00-05:00');
+    } catch (error) {
+        console.error('Error formateando fecha para cálculo:', error, fechaStr);
+        return null;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // ✅ NUEVO: Método para obtener el estado de la entrega con descripción
 getEstadoDescripcion(): string {

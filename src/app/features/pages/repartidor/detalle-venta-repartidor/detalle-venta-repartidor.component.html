@@ -160,66 +160,56 @@
       </div>
     </div>
 
+   
     <!-- En Ruta - Con estado especial si está cancelado -->
-    <div class="timeline-item" 
-         [ngClass]="{
-           'completed': isRutaIniciada() && venta.estado !== 'Cancelado',
-           'current': !isRutaFinalizada() && isRutaIniciada() && venta.estado !== 'Cancelado',
-           'cancelado': venta.estado === 'Cancelado' && isRutaIniciada()
-         }">
-      <div class="timeline-marker">
-        <i class="fas fa-play-circle"></i>
-      </div>
-      <div class="timeline-content">
-        <span class="timeline-title">En Ruta</span>
-        <span class="timeline-date" *ngIf="isRutaIniciada()">
-          {{ formatearFechaHora(venta.fecha_inicio_ruta) }}
-          <span *ngIf="venta.estado === 'Cancelado' && isRutaIniciada()" class="cancelado-nota">
-            (Cancelado durante la ruta - Tiempo: {{ calcularTiempoTotalEntrega() }})
-          </span>
-        </span>
-        <span class="timeline-date pending" *ngIf="!isRutaIniciada()">
-          No iniciada
-          <span *ngIf="venta.estado === 'Cancelado'" class="cancelado-nota">
-            (Cancelado antes de iniciar)
-          </span>
-        </span>
-      </div>
-    </div>
-
-    <!-- Entregado - Ocultar si está cancelado -->
-    <div class="timeline-item" 
-         [ngClass]="{'completed': isRutaFinalizada(), 'current': isRutaFinalizada()}"
-         *ngIf="venta.estado !== 'Cancelado'">
-      <div class="timeline-marker">
-        <i class="fas fa-flag-checkered"></i>
-      </div>
-      <div class="timeline-content">
-        <span class="timeline-title">Entregado</span>
-        <span class="timeline-date" *ngIf="isRutaFinalizada()">
-          {{ formatearFechaHora(venta.fecha_fin_ruta) }}
-        </span>
-        <span class="timeline-date pending" *ngIf="!isRutaFinalizada() && isRutaIniciada()">
-          En progreso
-        </span>
-      </div>
-    </div>
-
-    <!-- Cancelado - Mostrar como último paso si está cancelado -->
-    <div class="timeline-item cancelado" *ngIf="venta.estado === 'Cancelado'">
-      <div class="timeline-marker">
-        <i class="fas fa-times-circle"></i>
-      </div>
-      <div class="timeline-content">
-        <span class="timeline-title">Cancelado</span>
-        <span class="timeline-date">
-          {{ venta.fecha_fin_ruta ? formatearFechaHora(venta.fecha_fin_ruta) : 'Fecha no disponible' }}
-        </span>
-        <span class="cancelado-motivo" *ngIf="venta.notas">
-          <i class="fas fa-sticky-note"></i> {{ venta.notas }}
-        </span>
-      </div>
-    </div>
+<div class="timeline-item" 
+     [ngClass]="{
+       'completed': isRutaIniciada() && venta.estado !== 'Cancelado',
+       'current': !isRutaFinalizada() && isRutaIniciada() && venta.estado !== 'Cancelado',
+       'cancelado': venta.estado === 'Cancelado' && isRutaIniciada()
+     }">
+  <div class="timeline-marker">
+    <i class="fas fa-play-circle"></i>
+  </div>
+  <div class="timeline-content">
+    <span class="timeline-title">En Ruta</span>
+    <span class="timeline-date" *ngIf="isRutaIniciada()">
+      {{ formatearFechaHora(venta.fecha_inicio_ruta) }}
+      <span *ngIf="venta.estado === 'Cancelado' && isRutaIniciada() && venta.fecha_fin_ruta" class="cancelado-nota">
+        (Cancelado durante la ruta - Tiempo: {{ calcularTiempoTotalEntrega() }})
+      </span>
+      <span *ngIf="venta.estado === 'Cancelado' && isRutaIniciada() && !venta.fecha_fin_ruta" class="cancelado-nota">
+        (Cancelado - tiempo no disponible)
+      </span>
+    </span>
+    <span class="timeline-date pending" *ngIf="!isRutaIniciada()">
+      No iniciada
+      <span *ngIf="venta.estado === 'Cancelado'" class="cancelado-nota">
+        (Cancelado antes de iniciar)
+      </span>
+    </span>
+  </div>
+</div>
+   <!-- Cancelado - Mostrar fecha de cancelación si existe -->
+<div class="timeline-item cancelado" *ngIf="venta.estado === 'Cancelado'">
+  <div class="timeline-marker">
+    <i class="fas fa-times-circle"></i>
+  </div>
+  <div class="timeline-content">
+    <span class="timeline-title">Cancelado</span>
+    <span class="timeline-date">
+      <ng-container *ngIf="venta.fecha_fin_ruta; else sinFechaCancelacion">
+        {{ formatearFechaHora(venta.fecha_fin_ruta) }}
+      </ng-container>
+      <ng-template #sinFechaCancelacion>
+        {{ venta.fecha_fin_ruta ? formatearFechaHora(venta.fecha_fin_ruta) : 'Fecha no disponible' }}
+      </ng-template>
+    </span>
+    <span class="cancelado-motivo" *ngIf="venta.notas">
+      <i class="fas fa-sticky-note"></i> {{ venta.notas }}
+    </span>
+  </div>
+</div>
   </div>
 </div>
     </div>
