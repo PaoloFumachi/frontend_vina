@@ -37,6 +37,11 @@
           <mat-icon>add_shopping_cart</mat-icon>
           Nueva Venta
         </button>
+        <!-- Dentro del menú de Ventas -->
+        <button mat-menu-item *ngIf="tieneAcceso('ventas_nueva')" (click)="goToRecargas(); closeMenu()">
+          <mat-icon>local_drink</mat-icon>
+          Recarga de Bidones
+        </button>
         <button mat-menu-item *ngIf="tieneAcceso('ventas')" (click)="goToVentas(); closeMenu()">
           <mat-icon>receipt_long</mat-icon>
           Panel de Ventas

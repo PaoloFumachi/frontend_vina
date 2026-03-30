@@ -32,6 +32,7 @@ import { authGuard } from './guards/auth.guard';
 import { roleGuard } from './guards/role.guard';
 import { PersonalizacionComponent } from './features/pages/configuracion/personalizacion/personalizacion.component';
 import { InsumoListComponent } from './features/pages/insumo-list/insumo-list.component';
+import { RecargaRapidaComponent } from './components/recarga-rapida/recarga-rapida.component';
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
@@ -82,6 +83,13 @@ export const routes: Routes = [
     data: { requiredModule: 'ventas', expectedRoles: [1, 2] }
   }
    ,
+    // Nueva ruta para recarga de bidones
+  {
+    path: 'recargas',
+    component: RecargaRapidaComponent,
+    canActivate: [authGuard],
+    data: { expectedRoles: [1, 2] } // Admin y Vendedor
+  },
    /**{
   path: 'configuracion/empresa',
   component: EmpresaConfigComponent,

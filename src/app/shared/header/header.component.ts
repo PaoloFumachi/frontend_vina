@@ -388,6 +388,12 @@ goInsumos(): void {
     this.closeMenu();
   }
 }
+goToRecargas(): void {
+  if (this.tieneAcceso('ventas_nueva')) {
+    this.router.navigate(['/recargas']);
+    this.closeMenu();
+  }
+}
 isAdmin(): boolean {
   return this.userRole === 1;
 }

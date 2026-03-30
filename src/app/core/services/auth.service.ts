@@ -58,10 +58,10 @@ private checkAccessByRole(modulo: string, user: Usuario): boolean {
   switch (Number(role)) {
     case 1: // Admin
       return ['usuarios', 'personas', 'clientes', 'productos', 
-              'ventas_nueva', 'ventas', 'ventas_asignacion_rutas','empresa','sunat','insumos'].includes(modulo);
+              'ventas_nueva', 'ventas', 'ventas_asignacion_rutas','empresa','sunat','insumos','recargas'].includes(modulo);
     case 2: // Vendedor
     // 
-      return ['clientes','productos', 'ventas_nueva', 'ventas','ventas_asignacion_rutas','sunat'].includes(modulo);
+      return ['clientes','productos', 'ventas_nueva', 'ventas','ventas_asignacion_rutas','sunat','recargas'].includes(modulo);
     case 3: // Repartidor
       return ['rutas_asignadas', 'entregas_pendientes', 'historial_entregas'].includes(modulo);
    case 4: // Almacenero
